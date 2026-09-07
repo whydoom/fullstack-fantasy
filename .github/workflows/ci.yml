@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # See CLAUDE.md "Environment": dagster-dbt's latest release pins an exact
+          # dagster version whose Requires-Python excludes 3.14 — 3.12 is the version
+          # this whole stack is verified against.
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Commands run from the repo root with explicit --project-dir/--profiles-dir,
+      # matching local usage documented in CLAUDE.md.
+      - name: dbt deps
+        run: dbt deps --project-dir transform --profiles-dir transform
+
+      - name: dbt build
+        run: dbt build --project-dir transform --profiles-dir transform
+        # No Yahoo credentials in CI — this repo is public and ingestion never runs
+        # here. dbt build operates only against whatever is landed under data/raw/,
+        # which is gitignored, so CI builds against an empty warehouse until models
+        # exist that read from data/raw/.

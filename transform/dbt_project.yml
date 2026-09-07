@@ -1,0 +1,23 @@
+name: 'yahoo_fantasy_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'yahoo_fantasy_analytics'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+log-path: "logs"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  yahoo_fantasy_analytics:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

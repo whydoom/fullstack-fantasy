@@ -1,0 +1,13 @@
+# Python 3.12 required — see CLAUDE.md "Environment" section for why.
+# dagster-dbt's latest release pins an exact dagster version; these are pinned
+# together deliberately. Do not `pip install -U` individual packages here without
+# re-verifying the lockstep (see CLAUDE.md).
+
+dagster==1.12.8
+dagster-webserver==1.12.8
+dagster-dbt==0.28.8
+dbt-core==1.10.23
+dbt-duckdb==1.11.0
+
+requests==2.34.2
+python-dotenv==1.2.3

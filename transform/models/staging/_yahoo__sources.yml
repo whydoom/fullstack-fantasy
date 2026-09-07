@@ -1,0 +1,32 @@
+version: 2
+
+# Provisional. Landing filenames (the `name` argument to fetch_and_land) aren't
+# finalized until we've actually pulled real payloads and decided how granular each
+# landed file should be (e.g. one rosters.json per league-season vs. per week). Update
+# these `external_location` globs to match once src/ingest writes real files.
+#
+# Each table reads every season's landed JSON for that resource via duckdb's
+# read_json_auto glob support, so staging models don't need to know how many seasons
+# exist — new seasons just need a matching file under data/raw/{season}/.
+
+sources:
+  - name: raw_yahoo
+    description: >
+      Untouched Yahoo Fantasy API JSON payloads, landed one file per
+      {season}/{resource}.json by src/ingest. No parsing or renaming happens before
+      this point — see CLAUDE.md's ELT rationale.
+    meta:
+      external_location: "../data/raw/{name}/*.json"
+    tables:
+      - name: leagues
+        description: One row-equivalent payload per league-season the user played in.
+      - name: teams
+        description: Team metadata (name, manager, logo) per league-season.
+      - name: rosters
+        description: Weekly roster payloads — which players were on which team's roster.
+      - name: matchups
+        description: Weekly head-to-head matchup payloads.
+      - name: draft_results
+        description: Draft pick payloads per league-season.
+      - name: transactions
+        description: Add/drop/trade transaction payloads per league-season.

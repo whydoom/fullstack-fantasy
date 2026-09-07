@@ -1,0 +1,10 @@
+yahoo_fantasy_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # Relative to the invocation cwd, not --project-dir: dbt commands in this repo
+      # are always run from the repo root (see CLAUDE.md / README), so this resolves
+      # to <repo root>/data/warehouse.duckdb.
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'data/warehouse.duckdb') }}"
+      threads: 4

@@ -1,0 +1,127 @@
+version: 2
+
+# Model SQL isn't written yet — see CLAUDE.md. This file scaffolds the grain/test
+# contract for each mart so the dimensional model is decided before we start writing
+# SQL against real payload shapes. `dbt debug` (connection + config validity) passes
+# without these models existing; `dbt parse`/`dbt build` will warn (not error) about
+# the missing nodes until the corresponding .sql files are added.
+#
+# fct_roster_slot is the atomic fact. Every other fact/dim rolls up from it.
+
+models:
+  - name: dim_manager
+    description: >
+      One row per human, tracked across seasons and across team-name changes within
+      a season. Yahoo identifies teams by team_key per season, not by manager — this
+      model exists to give a stable identity for "who" independent of "what they
+      named their team that year."
+    columns:
+      - name: manager_id
+        description: Surrogate key, stable across all seasons for a given human.
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_team_season
+    description: One row per team as it existed in a single league-season.
+    columns:
+      - name: league_key
+        tests:
+          - not_null
+      - name: team_id
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - league_key
+              - team_id
+
+  - name: dim_player
+    description: One row per NFL player, as identified by Yahoo's global player_key.
+    columns:
+      - name: player_key
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_roster_slot
+    description: >
+      Atomic fact: one row per league-week-team-player, capturing whether that
+      player was started or benched and the points they scored in that slot.
+    columns:
+      - name: league_key
+        tests:
+          - not_null
+      - name: week
+        tests:
+          - not_null
+      - name: team_id
+        tests:
+          - not_null
+      - name: player_key
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - league_key
+              - week
+              - team_id
+              - player_key
+
+  - name: fct_matchup
+    description: One row per league-week-team, capturing that team's side of its matchup.
+    columns:
+      - name: league_key
+        tests:
+          - not_null
+      - name: week
+        tests:
+          - not_null
+      - name: team_id
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - league_key
+              - week
+              - team_id
+
+  - name: fct_draft_pick
+    description: One row per draft pick made in a league-season's draft.
+    columns:
+      - name: league_key
+        tests:
+          - not_null
+      - name: pick_number
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - league_key
+              - pick_number
+
+  - name: fct_transaction
+    description: >
+      One row per player affected by a transaction (a trade moving two players is
+      two rows sharing a transaction_id).
+    columns:
+      - name: transaction_id
+        tests:
+          - not_null
+      - name: player_key
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - transaction_id
+              - player_key
