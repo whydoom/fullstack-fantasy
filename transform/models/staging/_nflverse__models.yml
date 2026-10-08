@@ -1,0 +1,93 @@
+version: 2
+
+# Every test below was checked against landed data before being written — these
+# assert grains that actually hold, not grains that seem plausible.
+
+models:
+  - name: stg_nflverse__player_stats_weekly
+    description: >
+      One row per player per game. nflverse weekly box scores, 2020-present, regular
+      season and postseason, typed and renamed. Rows with no player identity are
+      excluded — see the model's where clause.
+    columns:
+      - name: player_id
+        description: nflverse GSIS player id. Stable across seasons; the join key to Yahoo player identity.
+        tests:
+          - not_null
+      - name: game_id
+        description: nflverse game id. Joins to stg_nflverse__schedules.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_nflverse__schedules')
+                field: game_id
+      - name: season
+        tests:
+          - not_null
+      - name: week
+        tests:
+          - not_null
+      - name: season_type
+        description: REG or POST. Part of the grain — week numbers restart conceptually between them.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['REG', 'POST']
+    tests:
+      # The grain. player_id alone repeats across weeks, and (player_id, season, week)
+      # would collide if a player appeared in both REG and POST week 18+, so
+      # season_type is part of the key rather than an attribute.
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - player_id
+              - season
+              - week
+              - season_type
+
+  - name: stg_nflverse__schedules
+    description: >
+      One row per NFL game, 2020-present, including postseason. Dates, times and
+      0/1 flags typed to date, time and boolean respectively.
+    columns:
+      - name: game_id
+        description: nflverse game id, unique per game. The grain.
+        tests:
+          - unique
+          - not_null
+      - name: season
+        tests:
+          - not_null
+      - name: week
+        tests:
+          - not_null
+      - name: game_type
+        description: REG, plus the postseason rounds WC / DIV / CON / SB.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['REG', 'WC', 'DIV', 'CON', 'SB']
+      - name: game_date
+        tests:
+          - not_null
+      - name: home_team_abbr
+        tests:
+          - not_null
+      - name: away_team_abbr
+        tests:
+          - not_null
+
+  - name: stg_nflverse__player_id_crosswalk
+    description: >
+      One row per player, current cross-platform ID mapping. Deduplicated on
+      player_id (see model SQL) so this is safe to join on directly.
+    columns:
+      - name: player_id
+        description: nflverse player id (DynastyProcess's gsis_id, renamed for consistency with the rest of this project).
+        tests:
+          - unique
+          - not_null
+

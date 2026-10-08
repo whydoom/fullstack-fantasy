@@ -1,0 +1,25 @@
+-- Atomic fact for the nflverse side of this project: one row per player per game.
+-- Grain: player_id + season + week + season_type — verified against landed data as
+-- zero duplicates before this model was written (see stg_nflverse__player_stats_weekly
+-- and its dbt_utils.unique_combination_of_columns test).
+--
+-- Also a thin pass-through, for the same reason as dim_game: the fact grain and the
+-- staging grain are already identical, so there is nothing to aggregate or reshape.
+-- What this model actually contributes is the dimensional *contract* — game_id and
+-- player_id as declared foreign keys, tested for referential integrity against
+-- dim_game and dim_player below — which the staging model does not assert.
+--
+-- team_abbr, opponent_team_abbr, position_code and position_group ride along here as
+-- degenerate dimensions (attributes of the fact itself) rather than being dropped in
+-- favor of a join to dim_player: they are what the player was doing *in this specific
+-- game*, which is not always what dim_player's "most recently known" snapshot says —
+-- 42% of players changed team or position at least once across the seasons landed.
+--
+-- This is the nflverse-side counterpart to the Yahoo-side fct_roster_slot (grain
+-- league_key + week + team + player), not a replacement for it: fct_roster_slot will
+-- record what Yahoo *rostered*; this records what actually *happened* on the field.
+-- Once fct_roster_slot exists, the fantasy-relevant question this project cares about
+-- most — "was that start/sit call defensible?" — is the join between the two, via
+-- dim_player's yahoo_id.
+
+select * from {{ ref('stg_nflverse__player_stats_weekly') }}

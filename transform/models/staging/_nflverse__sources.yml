@@ -1,0 +1,66 @@
+version: 2
+
+# Unlike _yahoo__sources.yml, these are NOT external-file sources — they are real
+# tables in the warehouse, created by `python -m src.load.duckdb_raw` from the parquet
+# under data/raw/nflverse/. dbt therefore needs no `external_location` glob and no
+# knowledge of where the files live on disk; see src/load/duckdb_raw.py for why path
+# resolution is done in Python rather than in a relative glob dbt would resolve
+# against whatever cwd happened to invoke it.
+#
+# These sources are real and verified against landed data, not a placeholder — the
+# column lists in the staging models were read off the actual parquet schema.
+
+sources:
+  - name: raw_nflverse
+    description: >
+      Public NFL data from nflverse (nflreadpy), loaded untouched from
+      data/raw/nflverse/{dataset}/{season}.parquet. No renaming, typing, or filtering
+      happens before this point — all of that is in the stg_nflverse__* models.
+    schema: raw_nflverse
+    tables:
+      - name: player_stats_weekly
+        description: >
+          One row per player per game. nflverse's weekly player box scores,
+          2020-present, regular season and postseason. 150 columns covering passing,
+          rushing, receiving, defensive, kicking and punting production, plus
+          precomputed standard and PPR fantasy points.
+        columns:
+          - name: player_id
+            description: >
+              nflverse GSIS player id. Nullable in the raw layer — a small number of
+              rows carry no player identity at all (see stg model), which is why the
+              not_null test lives on the staging model rather than here.
+      - name: schedules
+        description: >
+          One row per NFL game, 2020-present, including postseason. Carries final
+          scores, betting lines, venue, weather and officiating detail. `gameday`
+          and `gametime` arrive as strings and are typed in the staging model.
+      - name: player_id_crosswalk
+        description: >
+          Player identity mapped across fantasy platforms (nflreadpy's
+          load_ff_playerids, sourced from DynastyProcess.com), including `yahoo_id`
+          — the reason this is landed at all: it is the intended join key to Yahoo
+          player identity once that source lands, in place of matching on name.
+
+          Unlike the other two nflverse tables, this is NOT season-partitioned raw
+          data — it is a single current-snapshot reference table with no season
+          dimension. The raw layer keeps one dated file per day it was fetched
+          (data/raw/nflverse/player_id_crosswalk/{date}.parquet, immutable once
+          written), but this table always holds only the single latest snapshot;
+          see src/load/duckdb_raw.py.
+        columns:
+          - name: gsis_id
+            description: >
+              Matches this project's nflverse player_id format. Nullable — not every
+              row in the upstream crosswalk carries one — and not globally unique in
+              the raw snapshot (10 of 8,007 non-null values repeat, all fringe/free-
+              agent players; verified none of the meaningfully duplicated ones
+              overlap real landed player data except one, which is a true duplicate
+              of the same person). Deduplicated in the staging model.
+          - name: yahoo_id
+            description: >
+              Yahoo's numeric player id — the reusable portion of Yahoo's
+              player_key (game_key.p.player_id), assumed stable across seasons per
+              Yahoo's documented key structure. ASSUMPTION, not yet verified against
+              a real Yahoo payload — confirm this once Yahoo ingestion lands before
+              relying on it for a join.

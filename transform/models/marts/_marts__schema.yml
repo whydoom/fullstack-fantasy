@@ -1,12 +1,15 @@
 version: 2
 
-# Model SQL isn't written yet — see CLAUDE.md. This file scaffolds the grain/test
-# contract for each mart so the dimensional model is decided before we start writing
-# SQL against real payload shapes. `dbt debug` (connection + config validity) passes
-# without these models existing; `dbt parse`/`dbt build` will warn (not error) about
-# the missing nodes until the corresponding .sql files are added.
+# Yahoo-side model SQL isn't written yet — see CLAUDE.md; API access is pending
+# review. This file still scaffolds the grain/test contract for those marts so the
+# dimensional model is decided before writing SQL against real payload shapes.
+# `dbt debug` passes without those models existing; `dbt parse`/`dbt build` warn
+# (not error) about the missing nodes. fct_roster_slot is the atomic fact on the
+# Yahoo side; every other Yahoo fact/dim rolls up from it.
 #
-# fct_roster_slot is the atomic fact. Every other fact/dim rolls up from it.
+# The nflverse-side marts (dim_player, dim_game, fct_player_week) are real: built,
+# tested against landed data, and passing. fct_player_week is the atomic fact on the
+# nflverse side — real NFL production, independent of anything Yahoo-specific.
 
 models:
   - name: dim_manager
@@ -39,12 +42,85 @@ models:
               - team_id
 
   - name: dim_player
-    description: One row per NFL player, as identified by Yahoo's global player_key.
+    description: >
+      One row per NFL player, most-recently-known attributes. Built now from
+      nflverse (grain: player_id, nflverse's GSIS id) — the original scaffold below
+      assumed Yahoo's player_key because that was the only source planned when this
+      file was written; nflverse landed first, so the real model's grain differs.
+      Carries a nullable yahoo_id (from the player ID crosswalk) as the intended
+      reconciliation key once Yahoo data lands — see the model SQL.
     columns:
-      - name: player_key
+      - name: player_id
         tests:
           - unique
           - not_null
+
+  - name: dim_game
+    description: >
+      One row per NFL game, 2020-present including postseason. Thin pass-through of
+      stg_nflverse__schedules — see the model SQL for why there's no transformation
+      to add at this layer.
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_player_week
+    description: >
+      Atomic fact for the nflverse side of this project: one row per player per
+      game. NFL production, independent of any fantasy league — the counterpart to
+      the (not yet built) Yahoo-side fct_roster_slot, which will record what was
+      *rostered* rather than what actually happened on the field.
+    columns:
+      - name: player_id
+        description: Foreign key to dim_player.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_player')
+                field: player_id
+      - name: game_id
+        description: Foreign key to dim_game.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_game')
+                field: game_id
+      - name: season
+        tests:
+          - not_null
+      - name: week
+        description: >
+          Not hardcoded anywhere in this project: 2020's regular season ran through
+          week 17, 2021 onward runs through week 18 (the league expanded its
+          schedule), and postseason weeks continue the numbering at 21-22 rather
+          than resetting. Any model that needs "how many weeks this season" must
+          derive it (e.g. max(week) from dim_game filtered to game_type), never
+          assume a constant.
+        tests:
+          - not_null
+      - name: season_type
+        description: REG or POST. Part of the grain, not an attribute — see below.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['REG', 'POST']
+    tests:
+      # The grain, restated here (not just in staging) because this is the contract
+      # a mart consumer should be able to read without also opening the staging
+      # model. Verified zero duplicates against landed data before this test was
+      # written — see stg_nflverse__player_stats_weekly's identical test.
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - player_id
+              - season
+              - week
+              - season_type
 
   - name: fct_roster_slot
     description: >

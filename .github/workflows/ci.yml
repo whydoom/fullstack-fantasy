@@ -26,9 +26,19 @@ jobs:
       - name: dbt deps
         run: dbt deps --project-dir transform --profiles-dir transform
 
+      # nflverse needs no credentials, so CI can build against real data — it fetches
+      # the same public parquet the developer machine does (~4 MB for 2020-present).
+      # This is what makes the dbt tests meaningful in CI rather than vacuous: grain
+      # and relationship tests run against the actual dataset on every PR.
+      #
+      # The Yahoo half is different and stays out: it needs OAuth credentials this
+      # public repo must never hold, so no Yahoo model can be built here. When Yahoo
+      # models land, gate them out of the CI selection rather than adding secrets.
+      - name: Ingest nflverse (no credentials required)
+        run: python -m src.ingest.nflverse
+
+      - name: Load raw parquet into DuckDB
+        run: python -m src.load.duckdb_raw
+
       - name: dbt build
         run: dbt build --project-dir transform --profiles-dir transform
-        # No Yahoo credentials in CI — this repo is public and ingestion never runs
-        # here. dbt build operates only against whatever is landed under data/raw/,
-        # which is gitignored, so CI builds against an empty warehouse until models
-        # exist that read from data/raw/.

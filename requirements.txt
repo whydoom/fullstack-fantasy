@@ -11,3 +11,10 @@ dbt-duckdb==1.11.0
 
 requests==2.34.2
 python-dotenv==1.2.3
+
+# nflverse ingestion. NOT nfl_data_py — that package is deprecated by its own authors
+# in favour of this one, and additionally fails to install on 3.12 (it pins a pandas
+# with no cp312 wheel, whose source build breaks on modern setuptools). See CLAUDE.md.
+# Brings polars in transitively; nothing else in the stack is affected (verified: the
+# dagster/dbt pins above are untouched by this install).
+nflreadpy==0.1.5

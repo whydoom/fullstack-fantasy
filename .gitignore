@@ -2,6 +2,9 @@
 .secrets/
 data/raw/
 *.duckdb
+# Landed nflverse data is public, but it is bulk data and belongs in data/raw/,
+# never in the repo. Belt-and-braces in case a parquet is ever written outside it.
+*.parquet
 *.duckdb.wal
 __pycache__/
 *.pyc
@@ -11,3 +14,5 @@ logs/
 dbt_packages/
 .user.yml
 .DS_Store
+data/processed/
+data/
