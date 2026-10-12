@@ -14,7 +14,7 @@ LEAGUES = {
         "league_id": "1526935",
         "creds": "CF",
         "label": "College Forever",
-        "page": "adnfantasy.html",
+        "page": "college-forever.html",
     },
     "carrboro": {
         "league_id": "142788",
