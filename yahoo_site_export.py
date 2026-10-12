@@ -6,7 +6,7 @@
 Writes data/processed/{league}/yahoo_{leaders,team_weeks,luck}.json in the same
 shapes the ESPN extractors write (espn_leaders.py, espn_team_weeks.py,
 espn_luck.py), so jimoody.com's render_*.py scripts draw both platforms with the
-same code.
+same code. FAAB has its own per-league script (faab_adn.py).
 
 This is a presentation layer, not a model: every number here was computed and
 tested in dbt (fct_roster_slot, fct_matchup, fct_player_rank,
@@ -41,6 +41,7 @@ import re
 from collections import defaultdict
 
 import duckdb
+from zoneinfo import ZoneInfo
 
 from espn_team_weeks import optimal_score
 from src.ingest.discover import MANIFEST_PATH
@@ -56,6 +57,7 @@ POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP"]
 SLOT_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP", "FLEX"]
 LEADERS_ORDER = ["RB", "WR", "QB", "TE", "K", "DST", "IDP"]   # espn_leaders' order
 LEADERS_DEPTH = 25
+_ET = ZoneInfo("America/New_York")   # Yahoo week windows are US Eastern dates
 CLOSE_MARGIN = 5.0   # must match the close_game_margin var fct_team_week_allplay uses
 
 # Yahoo display positions that are individual defenders, i.e. play the D slot.

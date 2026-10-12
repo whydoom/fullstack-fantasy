@@ -130,3 +130,33 @@ models:
     columns:
       - name: slot_count
         tests: [not_null]
+
+  - name: stg_yahoo__transaction_players
+    description: >
+      One row per transaction and player moved. Grain checked against landed data
+      (216 legs across 118 non-commissioner transactions) first.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [transaction_key, player_key]
+    columns:
+      - name: leg_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [add, drop, trade]
+      - name: transacted_at
+        tests: [not_null]
+
+  - name: stg_yahoo__team_snapshots
+    description: >
+      Running team counters (FAAB balance, waiver priority, moves) as of the fetch.
+      Snapshot measures, kept out of dim_team_season.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, team_id]
+    columns:
+      - name: faab_balance
+        tests: [not_null]

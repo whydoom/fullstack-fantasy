@@ -238,19 +238,30 @@ models:
 
   - name: fct_transaction
     description: >
-      One row per player affected by a transaction (a trade moving two players is
-      two rows sharing a transaction_id).
+      One row per player affected by a transaction (an add/drop or a trade moving
+      two players is two rows sharing a transaction_id). faab_bid sits on the add
+      leg only. league_key is part of the grain because Yahoo numbers transactions
+      from 1 in every league. FAAB balances are reconciled against it by
+      tests/assert_yahoo_faab_balance_reconciles.sql.
     columns:
+      - name: league_key
+        tests:
+          - not_null
       - name: transaction_id
         tests:
           - not_null
       - name: player_key
         tests:
           - not_null
+      - name: week
+        description: Fantasy week the move falls in (US Eastern); preseason moves are week 1.
+        tests:
+          - not_null
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns:
+              - league_key
               - transaction_id
               - player_key
 
