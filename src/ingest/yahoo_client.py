@@ -29,8 +29,13 @@ AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth"
 TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token"
 API_BASE = "https://fantasysports.yahooapis.com/fantasy/v2"
 
-TOKEN_PATH = Path(".secrets/token.json")
-RAW_DATA_DIR = Path("data/raw")
+# Absolute, derived from this file, never from the caller's cwd: Dagster runs this
+# from wherever `dagster dev` was started, and a relative path would then look for
+# the token -- and land data -- somewhere else entirely. Same reasoning as
+# src/load/duckdb_raw.py.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TOKEN_PATH = REPO_ROOT / ".secrets" / "token.json"
+RAW_DATA_DIR = REPO_ROOT / "data" / "raw"
 
 # Yahoo has no documented rate limit for this API, but there is no reason to hammer
 # a personal league's data with a personal script.

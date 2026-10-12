@@ -37,11 +37,10 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 from typing import Any, Iterator
 
 from src.ingest.discover import MANIFEST_PATH
-from src.ingest.yahoo_client import YahooFantasyClient
+from src.ingest.yahoo_client import RAW_DATA_DIR, YahooFantasyClient
 
 # Ranking depth per position. The site's roster grid shades positional finishes in
 # bands out to rank 60 (jimoody.com render_team_weeks.TIER_BANDS) and greys anything
@@ -109,7 +108,7 @@ def land_season(league_key: str, client: YahooFantasyClient | None = None) -> No
 
     # Settings first: they decide what is still changing. A landed settings file
     # that already says the season is finished is final and is not re-fetched.
-    settings_file = Path("data/raw") / season / root / "settings.json"
+    settings_file = RAW_DATA_DIR / season / root / "settings.json"
     finished_on_disk = settings_file.exists() and _is_finished(
         json.loads(settings_file.read_text())["data"])
     settings = land(f"league/{league_key}/settings", "settings", not finished_on_disk)

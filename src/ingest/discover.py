@@ -23,10 +23,23 @@ import json
 from pathlib import Path
 from typing import Any, Iterator
 
-from src.ingest.yahoo_client import YahooFantasyClient
+from src.ingest.yahoo_client import RAW_DATA_DIR, YahooFantasyClient
 
-MANIFEST_PATH = Path("data/raw/_discovery/league_manifest.json")
+MANIFEST_PATH = RAW_DATA_DIR / "_discovery" / "league_manifest.json"
 
+
+
+def latest_league_key(name: str) -> str:
+    """The most recent season's league_key for a Yahoo league, by name.
+
+    League keys embed a game key that changes every season, so code refers to a
+    league by name and resolves the key here, from the manifest discovery wrote.
+    """
+    rows = [lg for lg in json.loads(MANIFEST_PATH.read_text()) if lg.get("name") == name]
+    if not rows:
+        raise SystemExit(f"No Yahoo league named {name!r} in {MANIFEST_PATH}. "
+                         "Run `python -m src.ingest.discover`.")
+    return max(rows, key=lambda lg: int(lg["season"]))["league_key"]
 
 def _walk_for_leagues(node: Any) -> Iterator[dict[str, Any]]:
     """Recursively yield every dict in `node` that contains a `league_key` field."""

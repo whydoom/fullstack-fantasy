@@ -44,7 +44,7 @@ import duckdb
 from zoneinfo import ZoneInfo
 
 from espn_team_weeks import optimal_score
-from src.ingest.discover import MANIFEST_PATH
+from src.ingest.discover import latest_league_key as resolve_league_key
 from src.ingest.leagues import LEAGUES, keys, selected
 from src.load.yahoo_raw import WAREHOUSE_PATH
 
@@ -74,14 +74,6 @@ def position_group(display_position: str) -> str:
     listed 'WR,CB' ranks as a WR."""
     primary = display_position.split(",")[0]
     return primary if primary in OFFENSE_AND_UNITS else "D"
-
-
-def resolve_league_key(name: str) -> str:
-    """Latest season's league_key for a Yahoo league name, from discovery."""
-    rows = [lg for lg in json.loads(MANIFEST_PATH.read_text()) if lg.get("name") == name]
-    if not rows:
-        raise SystemExit(f"No Yahoo league named {name!r} in {MANIFEST_PATH}.")
-    return max(rows, key=lambda lg: int(lg["season"]))["league_key"]
 
 
 def abbreviations(nicknames: dict[int, str]) -> dict[int, str]:

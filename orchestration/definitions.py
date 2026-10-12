@@ -53,9 +53,10 @@ not one immutable fact per year, so `crosswalk_landing_asset` /
 Same key-matching rule applies to the load asset (`raw_nflverse/player_id_crosswalk`)
 so it fuses into the same dbt lineage graph as everything else.
 
-The Yahoo ingestion (src/ingest/yahoo_client.py) is still not wired in: its asset
-boundaries depend on payload shapes we have not seen yet, because API access is
-pending review. Untouched here by design.
+The Yahoo leagues are wired in from orchestration/yahoo_assets.py: landing,
+the raw_yahoo load (keyed to fuse with the Yahoo dbt sources, as above), and the
+site export and render downstream of the dbt models. Its docstring explains those
+asset boundaries and the weekly schedule.
 """
 
 import os
@@ -69,7 +70,13 @@ from dagster import (
     StaticPartitionsDefinition,
     asset,
 )
-from dagster_dbt import DbtCliResource, DbtProject, dbt_assets
+from dagster_dbt import (
+    DagsterDbtTranslator,
+    DagsterDbtTranslatorSettings,
+    DbtCliResource,
+    DbtProject,
+    dbt_assets,
+)
 
 from src.ingest.nflverse import (
     DATASETS,
@@ -78,6 +85,15 @@ from src.ingest.nflverse import (
     seasons_to_fetch,
 )
 from src.load import duckdb_raw
+
+from orchestration.yahoo_assets import (
+    adn_weekly_refresh,
+    adn_weekly_schedule,
+    yahoo_export_assets,
+    yahoo_landing_assets,
+    yahoo_page_assets,
+    yahoo_raw_load,
+)
 
 REPO_ROOT = Path(__file__).parent.parent
 DBT_PROJECT_DIR = REPO_ROOT / "transform"
@@ -214,7 +230,17 @@ dbt_project = DbtProject(
 dbt_project.prepare_if_dev()
 
 
-@dbt_assets(manifest=dbt_project.manifest_path)
+# Source tests become asset checks on the assets that produce the sources (the
+# raw_nflverse/* and raw_yahoo/* load assets). Without this, dagster-dbt leaves out
+# every test whose only parent is a source when it builds a subset -- which drops
+# the Yahoo single-valued tests that guard each staging model's `[1]` extraction,
+# and would let a Yahoo shape change through a scheduled run unchecked.
+dbt_translator = DagsterDbtTranslator(
+    settings=DagsterDbtTranslatorSettings(enable_source_tests_as_checks=True)
+)
+
+
+@dbt_assets(manifest=dbt_project.manifest_path, dagster_dbt_translator=dbt_translator)
 def fantasy_dbt_assets(context, dbt: DbtCliResource):
     yield from dbt.cli(["build"], context=context).stream()
 
@@ -226,7 +252,13 @@ defs = Definitions(
         crosswalk_landing_asset,
         crosswalk_load_asset,
         fantasy_dbt_assets,
+        *yahoo_landing_assets,
+        yahoo_raw_load,
+        *yahoo_export_assets,
+        *yahoo_page_assets,
     ],
+    jobs=[adn_weekly_refresh],
+    schedules=[adn_weekly_schedule],
     resources={
         "dbt": DbtCliResource(project_dir=dbt_project),
     },
