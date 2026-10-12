@@ -190,7 +190,9 @@ class YahooFantasyClient:
 
     # ---------------------------------------------------------------- Landing
 
-    def fetch_and_land(self, resource_path: str, season: str, name: str) -> dict[str, Any]:
+    def fetch_and_land(
+        self, resource_path: str, season: str, name: str, refresh: bool = False
+    ) -> dict[str, Any]:
         """Fetch a resource, persist it (wrapped with _meta) to data/raw/{season}/{name}.json,
         and return the untouched Yahoo payload — not the on-disk _meta wrapper.
 
@@ -198,9 +200,15 @@ class YahooFantasyClient:
         of re-fetching. Completed seasons are immutable in Yahoo's API, so this makes
         a historical backfill safe to re-run after a crash — it costs exactly one pass
         over the API.
+
+        refresh=True overwrites instead. Use it for anything still changing — the
+        in-progress week, season-to-date stats, the transaction log. Without it the
+        skip-if-exists rule would freeze those at whatever they were on the first run:
+        the same idempotency-becomes-staleness trap the nflverse loader avoids by
+        always re-fetching the current season.
         """
         dest = RAW_DATA_DIR / season / f"{name}.json"
-        if dest.exists():
+        if dest.exists() and not refresh:
             return json.loads(dest.read_text())["data"]
 
         payload = self.get(resource_path)
