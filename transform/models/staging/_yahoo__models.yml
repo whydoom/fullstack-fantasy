@@ -48,3 +48,33 @@ models:
           Points scored that week. Present for bench and IR players too — Yahoo
           scores everyone, which is what makes an optimal-lineup comparison possible.
         tests: [not_null]
+
+  - name: stg_yahoo__matchup_teams
+    description: >
+      One row per league, week and team: that team's side of its head-to-head
+      matchup, with the opponent's key, the result fields Yahoo reports, and the
+      team's points. Each matchup appears twice, once per side. Grain checked
+      against landed data (2026 weeks 1-4: 24 matchups, 48 sides) first.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, week, team_key]
+    columns:
+      - name: season
+        tests: [not_null]
+      - name: league_key
+        tests: [not_null]
+      - name: week
+        tests: [not_null]
+      - name: team_key
+        tests: [not_null]
+      - name: opponent_team_key
+        tests: [not_null]
+      - name: matchup_status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [preevent, midevent, postevent]
+      - name: team_points
+        tests: [not_null]

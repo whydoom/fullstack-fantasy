@@ -32,3 +32,18 @@ sources:
             description: The landed document, untouched.
             tests:
               - not_null
+      - name: scoreboards
+        description: >
+          One row per league per week. Each payload is `league/{league_key}/
+          scoreboard;week={n}`: every head-to-head matchup that week, both teams'
+          points and projections, and the result. Team metadata inside it
+          (faab_balance, managers, move counts) is as of fetch time, not that week,
+          and is deliberately not staged from here.
+        columns:
+          - name: landed_file
+            tests:
+              - unique
+              - not_null
+          - name: payload
+            tests:
+              - not_null

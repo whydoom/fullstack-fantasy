@@ -34,6 +34,7 @@ RAW_SCHEMA = "raw_yahoo"
 # written, not before: a raw table nothing reads is just an unverified guess.
 RESOURCES = {
     "rosters": "*/*/rosters/week_*/*.json",
+    "scoreboards": "*/*/scoreboard_week_*.json",
 }
 
 
