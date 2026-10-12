@@ -40,5 +40,7 @@ jobs:
       - name: Load raw parquet into DuckDB
         run: python -m src.load.duckdb_raw
 
+      # `source:raw_yahoo+` is the Yahoo source and everything downstream of it, so a
+      # new Yahoo model is excluded the moment it refs that lineage — no tag to forget.
       - name: dbt build
-        run: dbt build --project-dir transform --profiles-dir transform
+        run: dbt build --project-dir transform --profiles-dir transform --exclude "source:raw_yahoo+"

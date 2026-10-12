@@ -1,0 +1,50 @@
+version: 2
+
+# Grains below were checked against landed data (2026, weeks 1-4, 48 roster files,
+# 741 rows) with `group by ... having count(*) > 1` before these tests were written.
+
+models:
+  - name: stg_yahoo__roster_slots
+    description: >
+      One row per league, week, team and player: every player on every roster each
+      week, the lineup slot they occupied, and their fantasy points. Includes bench
+      and IR. Atomic input to the future fct_roster_slot.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, week, team_key, player_key]
+      # Stronger than the grain: a player is on at most one roster per week. Holds
+      # today; a mid-week trade could break it, and if so this should fail loudly
+      # rather than double-count the player downstream.
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, week, player_key]
+    columns:
+      - name: season
+        tests: [not_null]
+      - name: league_key
+        tests: [not_null]
+      - name: week
+        tests: [not_null]
+      - name: team_key
+        tests: [not_null]
+      - name: player_key
+        tests: [not_null]
+      - name: yahoo_player_id
+        tests: [not_null]
+      - name: player_name
+        tests: [not_null]
+      - name: selected_position
+        description: >
+          Lineup slot that week. BN = bench, IR = injured reserve, D = individual
+          defensive player (IDP), W/R/T = flex.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [QB, RB, WR, TE, W/R/T, K, DEF, D, BN, IR]
+      - name: fantasy_points
+        description: >
+          Points scored that week. Present for bench and IR players too — Yahoo
+          scores everyone, which is what makes an optimal-lineup comparison possible.
+        tests: [not_null]
