@@ -47,3 +47,15 @@ sources:
           - name: payload
             tests:
               - not_null
+      - name: teams
+        description: >
+          One row per league-season. `league/{league_key}/teams`: every team with
+          its name, logo, prior-season rank and manager, as of fetch time.
+        columns:
+          - name: landed_file
+            tests:
+              - unique
+              - not_null
+          - name: payload
+            tests:
+              - not_null

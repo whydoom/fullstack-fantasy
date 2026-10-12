@@ -78,3 +78,20 @@ models:
                 values: [preevent, midevent, postevent]
       - name: team_points
         tests: [not_null]
+
+  - name: stg_yahoo__teams
+    description: >
+      One row per league and team, as of fetch time, with its single manager.
+      Running counters (FAAB balance, moves, waiver priority) are excluded; see
+      the model SQL.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, team_id]
+    columns:
+      - name: team_key
+        tests: [unique, not_null]
+      - name: team_name
+        tests: [not_null]
+      - name: manager_nickname
+        tests: [not_null]

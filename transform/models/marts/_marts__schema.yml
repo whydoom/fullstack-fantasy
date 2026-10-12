@@ -26,12 +26,25 @@ models:
           - not_null
 
   - name: dim_team_season
-    description: One row per team as it existed in a single league-season.
+    description: >
+      One row per team as it existed in a single league-season, with its manager.
+      Type 1 (latest-fetched attributes). Every Yahoo fact joins to it on
+      (league_key, team_id); tests/assert_yahoo_facts_have_team.sql enforces that,
+      since dbt's relationships test cannot take a composite key.
     columns:
       - name: league_key
         tests:
           - not_null
       - name: team_id
+        tests:
+          - not_null
+      - name: team_name
+        tests:
+          - not_null
+      - name: manager_nickname
+        description: >
+          Display name the manager set on Yahoo. Not a stable identity: Yahoo hides
+          account ids, so this does not link the same person across seasons.
         tests:
           - not_null
     tests:

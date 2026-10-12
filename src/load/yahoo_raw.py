@@ -32,9 +32,16 @@ RAW_SCHEMA = "raw_yahoo"
 # table -> glob under data/raw, laid out as {season}/{league_key}/... by the landing
 # names fetch_and_land was given. Add a resource here when its staging model is
 # written, not before: a raw table nothing reads is just an unverified guess.
+#
+# The prefix pins Yahoo's layout — a season directory (starts with a digit) holding a
+# league_key directory (contains ".l.") — because data/raw is shared with other
+# sources. A bare */*/teams.json would also match a future espn/{league}/teams.json
+# and silently load ESPN payloads into raw_yahoo.
+_LEAGUE_DIR = "[0-9]*/*.l.*"
 RESOURCES = {
-    "rosters": "*/*/rosters/week_*/*.json",
-    "scoreboards": "*/*/scoreboard_week_*.json",
+    "rosters": f"{_LEAGUE_DIR}/rosters/week_*/*.json",
+    "scoreboards": f"{_LEAGUE_DIR}/scoreboard_week_*.json",
+    "teams": f"{_LEAGUE_DIR}/teams.json",
 }
 
 
