@@ -43,9 +43,11 @@ from typing import Any, Iterator
 from src.ingest.discover import MANIFEST_PATH
 from src.ingest.yahoo_client import YahooFantasyClient
 
-# Leaders depth per position. 50 comfortably covers a 12-team league's starters and
-# the waiver-relevant tier behind them; Yahoo pages players 25 at a time.
-PLAYER_POOL_DEPTH = 50
+# Ranking depth per position. The site's roster grid shades positional finishes in
+# bands out to rank 60 (jimoody.com render_team_weeks.TIER_BANDS) and greys anything
+# deeper, so ranks are needed through 60; 75 is the next full page. Yahoo pages
+# players 25 at a time.
+PLAYER_POOL_DEPTH = 75
 PAGE_SIZE = 25
 
 # Roster slots that are not real positions and cannot filter the player pool:

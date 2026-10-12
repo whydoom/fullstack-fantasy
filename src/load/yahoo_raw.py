@@ -42,6 +42,8 @@ RESOURCES = {
     "rosters": f"{_LEAGUE_DIR}/rosters/week_*/*.json",
     "scoreboards": f"{_LEAGUE_DIR}/scoreboard_week_*.json",
     "teams": f"{_LEAGUE_DIR}/teams.json",
+    "settings": f"{_LEAGUE_DIR}/settings.json",
+    "player_pool": f"{_LEAGUE_DIR}/players/*/*.json",
 }
 
 

@@ -21,7 +21,7 @@ from pathlib import Path
 
 from src.ingest.espn import (BASE, PROJECT_ROOT, EspnClient, current_season,
                              processed_dir)
-from src.ingest.leagues import LEAGUES, selected
+from src.ingest.leagues import LEAGUES, keys, selected
 
 OUT_NAME = "espn_team_weeks.json"
 
@@ -374,11 +374,11 @@ def main(league_key):
 
 
 def cli(main):
-    """Shared --league entry point: no flag runs every league in LEAGUES."""
+    """Shared --league entry point: no flag runs every ESPN league in LEAGUES."""
     ap = argparse.ArgumentParser()
-    ap.add_argument("--league", choices=list(LEAGUES),
-                    help="league key from src/ingest/leagues.py (default: all)")
-    for key in selected(ap.parse_args().league):
+    ap.add_argument("--league", choices=keys("espn"),
+                    help="ESPN league key from src/ingest/leagues.py (default: all)")
+    for key in selected(ap.parse_args().league, platform="espn"):
         print(f"\n=== {key} ===")
         main(key)
 

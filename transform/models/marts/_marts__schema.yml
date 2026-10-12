@@ -253,3 +253,33 @@ models:
             combination_of_columns:
               - transaction_id
               - player_key
+
+  - name: fct_player_rank
+    description: >
+      One row per league, period (W01..Wnn or SEASON), position group and player:
+      points and deterministic positional rank under the league's scoring. Covers
+      the landed top 75 per position; deeper players have no rank.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, period_key, position_group, player_key]
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, period_key, position_group, position_rank]
+    columns:
+      - name: position_rank
+        tests: [not_null]
+
+  - name: fct_team_week_allplay
+    description: >
+      One row per league, final regular-season week and team: all-play record,
+      expected wins, vs-median and close-game flags. Same definitions as the ESPN
+      pipeline's espn_luck.py. Expected wins summing to n/2 per week is enforced by
+      tests/assert_allplay_expected_wins_sum_to_half.sql.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, week, team_id]
+    columns:
+      - name: expected_wins
+        tests: [not_null]

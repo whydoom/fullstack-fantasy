@@ -95,3 +95,38 @@ models:
         tests: [not_null]
       - name: manager_nickname
         tests: [not_null]
+
+  - name: stg_yahoo__player_pool
+    description: >
+      Top players by fantasy points per position, per week and season to date.
+      Grain checked against landed data (2,778 rows, no player repeated within a
+      position and period) before this test was written.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, period_key, position_group, player_key]
+    columns:
+      - name: league_key
+        tests: [not_null]
+      - name: period_key
+        tests: [not_null]
+      - name: position_group
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [QB, RB, WR, TE, K, DEF, D]
+      - name: player_name
+        tests: [not_null]
+      - name: fantasy_points
+        tests: [not_null]
+
+  - name: stg_yahoo__roster_positions
+    description: Lineup slots per league and how many of each, BN and IR flagged.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league_key, position]
+    columns:
+      - name: slot_count
+        tests: [not_null]

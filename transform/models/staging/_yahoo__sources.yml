@@ -59,3 +59,29 @@ sources:
           - name: payload
             tests:
               - not_null
+      - name: player_pool
+        description: >
+          One row per page of `league/{league_key}/players;position={pos};sort=PTS;...`:
+          the top players at one position for one week or the season to date, under
+          this league's scoring, 25 per page. The position and period are request
+          parameters, recorded in `_meta.resource_path`.
+        columns:
+          - name: landed_file
+            tests:
+              - unique
+              - not_null
+          - name: payload
+            tests:
+              - not_null
+      - name: settings
+        description: >
+          One row per league-season. `league/{league_key}/settings`: weeks, playoff
+          format, FAAB, and the roster positions a lineup is built from.
+        columns:
+          - name: landed_file
+            tests:
+              - unique
+              - not_null
+          - name: payload
+            tests:
+              - not_null
