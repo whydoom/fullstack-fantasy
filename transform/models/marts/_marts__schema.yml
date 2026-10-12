@@ -125,7 +125,9 @@ models:
   - name: fct_roster_slot
     description: >
       Atomic fact: one row per league-week-team-player, capturing whether that
-      player was started or benched and the points they scored in that slot.
+      player was started or benched and the points they scored that week. Built
+      from stg_yahoo__roster_slots; grain verified against landed 2026 data
+      (741 rows, weeks 1-4) before this test was written.
     columns:
       - name: league_key
         tests:
@@ -137,6 +139,22 @@ models:
         tests:
           - not_null
       - name: player_key
+        tests:
+          - not_null
+      - name: yahoo_player_id
+        description: >
+          Numeric tail of player_key, stable across seasons. The key a future
+          conformed dim_player will join on (not wired up yet; see the model SQL).
+        tests:
+          - not_null
+      - name: is_starter
+        description: >
+          True for every slot except bench (BN) and injured reserve (IR). The single
+          definition of "started" that every Yahoo team-week measure rolls up from.
+        tests:
+          - not_null
+      - name: fantasy_points
+        description: Points scored that week, started or not. Additive.
         tests:
           - not_null
     tests:
