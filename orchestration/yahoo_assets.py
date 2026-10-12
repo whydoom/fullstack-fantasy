@@ -25,13 +25,17 @@ Asset boundaries, and why
 
 The weekly schedule
 -------------------
-Tuesday 10:00 US Eastern. Monday night's game has finished, so the week is final;
+Tuesday 8:00 US Eastern (America/New_York, so it tracks the clock through daylight
+saving rather than staying fixed at UTC-5). Monday night's game has finished, so the
+week is final;
 the next week has not kicked off, so Yahoo's season-to-date totals equal the sum of
 the final weeks the page shows (see yahoo_site_export.py). Stat corrections keep
 arriving for a few days, which is why the landing re-fetches the previous week too.
 
-A schedule only fires while the Dagster daemon is running, which locally means while
-`dagster dev` is up. Nothing here runs unattended on a server; that would need a
+The schedule is defined as RUNNING, so it is on as soon as the code loads; Dagster's
+default is stopped until someone switches it on in the UI, and `dagster dev` without
+a DAGSTER_HOME does not remember that switch between sessions. It still only fires
+while the Dagster daemon is running, which locally means while `dagster dev` is up. Nothing here runs unattended on a server; that would need a
 host, which is a cost decision, not a code one.
 """
 
@@ -48,6 +52,7 @@ from dagster import (
     AssetKey,
     AssetSelection,
     AssetSpec,
+    DefaultScheduleStatus,
     Failure,
     MaterializeResult,
     MetadataValue,
@@ -232,7 +237,8 @@ adn_weekly_refresh = define_asset_job(
 
 adn_weekly_schedule = ScheduleDefinition(
     job=adn_weekly_refresh,
-    cron_schedule="0 10 * * 2",
+    cron_schedule="0 8 * * 2",
     execution_timezone="America/New_York",
-    description="Tuesday 10:00 ET: week final, next week not yet kicked off.",
+    default_status=DefaultScheduleStatus.RUNNING,
+    description="Tuesday 8:00 ET: week final, next week not yet kicked off.",
 )
