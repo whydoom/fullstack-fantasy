@@ -201,11 +201,12 @@ def export(league: str) -> None:
                             for k in ("actual", "optimal")} for l in labels}}
         scores[str(tid)] = per_week
 
-        held = {}   # player_key -> {"meta": row, "status": {week: status}}
+        held = {}   # player_key -> {"meta": row, "status": {week: status}, "pts": {week: pts}}
         for w in weeks:
             for r in slots_by_week[w][tid]:
-                h = held.setdefault(r["player_key"], {"meta": r, "status": {}})
+                h = held.setdefault(r["player_key"], {"meta": r, "status": {}, "pts": {}})
                 h["status"][w] = "start" if r["is_starter"] else "bench"
+                h["pts"][w] = float(r["fantasy_points"])
         players_out = []
         for pk, h in held.items():
             group = position_group(h["meta"]["display_position"])
@@ -215,6 +216,13 @@ def export(league: str) -> None:
             cells = {}
             for w in weeks:
                 rank, pts = cell(f"W{w:02d}")
+                # A week the player was on this roster takes its points from the
+                # roster (fct_roster_slot), not the player pool: the roster is what
+                # reconciles to the official score, it covers players ranked below
+                # the pool's depth, and the pool may carry a later stat correction.
+                # The pool still supplies the rank, and the points for weeks off it.
+                if w in h["pts"]:
+                    pts = h["pts"][w]
                 cells[str(w)] = {"rank": rank, "pts": pts, "status": h["status"].get(w, "off")}
             s_rank, s_pts = cell("SEASON")
             players_out.append({"id": pk, "name": h["meta"]["player_name"], "pos": label(group),
