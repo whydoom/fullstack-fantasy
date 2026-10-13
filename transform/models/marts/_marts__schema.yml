@@ -182,10 +182,11 @@ models:
   - name: fct_matchup
     description: >
       One row per league-week-team, capturing that team's side of its matchup:
-      Yahoo's official score, the opponent's, and the result once the week is final.
-      Each matchup appears twice, once per side. team_points is the scoreboard's
-      number, kept independent of fct_roster_slot so the two can be reconciled
-      (tests/assert_yahoo_starters_match_team_score.sql).
+      the team's score, the opponent's, and the result once the week is final.
+      Each matchup appears twice, once per side. team_points is the sum of the
+      team's started roster slots (what Yahoo's matchup page shows); the
+      scoreboard API's own total is kept as reported_points, and any difference
+      is reported as a warning by tests/assert_yahoo_reported_score_matches_starters.sql.
     columns:
       - name: league_key
         tests:
@@ -212,6 +213,10 @@ models:
         description: The opponent's team_points. Null would mean an unmatched side.
         tests:
           - not_null
+      - name: reported_points
+        description: >
+          The scoreboard API's total for this team. Equal to team_points unless the
+          API disagrees with its own player points (ADN 2026 week 5, team 6).
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
