@@ -116,7 +116,7 @@ def main(league_key):
             # week's luck -- actual result minus expected wins
             won = 1.0 if pts > opp_pts else 0.0 if pts < opp_pts else 0.5
             s["weekly"].append({
-                "week": wk, "pts": pts,
+                "week": wk, "pts": pts, "opp": opp_pts,
                 "rank": 1 + sum(1 for o, v in scores.items() if o != tid and v > pts),
                 "result": "W" if won == 1.0 else "L" if won == 0.0 else "T",
                 "luck": round(won - ev, 2),

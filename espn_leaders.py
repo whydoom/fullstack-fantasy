@@ -25,7 +25,9 @@ OUT_NAME = "espn_leaders.json"
 # K and DST keep 64, i.e. every one who played: the site shows them as started
 # lineups with a top-32 average above them and a count of unstarted players who
 # beat the 3rd-best starter, which needs everyone above that bar.
-GROUPS = [("RB", 25), ("WR", 25), ("QB", 25), ("TE", 25), ("K", 64), ("DST", 64)]
+# Every group now carries 75 (K and DST: everyone who played): the site finds the
+# best free agent at each position each week, which can rank well below 25.
+GROUPS = [("RB", 75), ("WR", 75), ("QB", 75), ("TE", 75), ("K", 75), ("DST", 75)]
 
 
 def extract(pool, season, week=None):

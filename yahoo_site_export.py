@@ -56,7 +56,10 @@ LABEL = {"DEF": "DST", "W/R/T": "FLEX", "D": "IDP"}
 POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP"]
 SLOT_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP", "FLEX"]
 LEADERS_ORDER = ["RB", "WR", "QB", "TE", "K", "DST", "IDP"]   # espn_leaders' order
-LEADERS_DEPTH = 25
+# Every position carries the pool's full landed depth (75): the site finds the
+# best free agent at each position each week (its PLOW metric and BA lines),
+# which can sit well below the top 25. Pages still show 25 (12 when stacked).
+LEADERS_DEPTH = 75
 # K, DST and IDP are shown as started lineups with figures above them: a top-32
 # average, and a count of unstarted players who beat the 3rd-best starter. That
 # count needs every player above the bar, so these carry everything the pool
@@ -291,13 +294,15 @@ def export(league: str) -> None:
     # luck -- actual result minus expected wins.
     weekly = defaultdict(list)
     for r in rows(con, """
-        select a.team_id, a.week, a.team_points, a.allplay_losses, a.expected_wins, m.result
+        select a.team_id, a.week, a.team_points, a.allplay_losses, a.expected_wins, m.result,
+               m.opponent_points
         from fct_team_week_allplay a
         join fct_matchup m using (league_key, week, team_id)
         where a.league_key = ? order by a.week""", lk):
         won = {"W": 1.0, "L": 0.0, "T": 0.5}[r["result"]]
         weekly[r["team_id"]].append({
             "week": r["week"], "pts": float(r["team_points"]),
+            "opp": float(r["opponent_points"]),
             "rank": 1 + r["allplay_losses"], "result": r["result"],
             "luck": round(won - float(r["expected_wins"]), 2)})
     for row in luck:
