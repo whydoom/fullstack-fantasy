@@ -172,6 +172,26 @@ def main():
     acqs = [t for t in raw.values()
             if classify(t) == "ACQUISITION" and t.get("status") == "EXECUTED"]
     paid = [t for t in acqs if (t.get("bidAmount") or 0) >= 1]
+
+    # Losing bids: a claim that lost to a higher bid on the same player comes back
+    # as FAILED_INVALIDPLAYERSOURCE (the player was no longer in the pool when it
+    # was processed), with its bid. Matched to the winning claim by player and
+    # scoring period -- every losing bid this season matches one winning claim,
+    # and none exceeds the bid that beat it (checked below). PENDING claims are
+    # other managers' live, unprocessed bids and are never read.
+    def add_pid(t):
+        return next((i.get("playerId") for i in t.get("items") or []
+                     if i.get("type") == "ADD"), None)
+    losing = defaultdict(list)
+    for t in raw.values():
+        if t.get("type") == "WAIVER" and t.get("status") == "FAILED_INVALIDPLAYERSOURCE":
+            losing[(add_pid(t), t.get("scoringPeriodId"))].append(t.get("bidAmount") or 0)
+
+    def second_bid(t):
+        bids = losing.get((add_pid(t), t.get("scoringPeriodId")), [])
+        if bids and max(bids) > (t.get("bidAmount") or 0):
+            raise SystemExit(f"losing bid above the winning bid for player {add_pid(t)}")
+        return max(bids) if bids else None
     free = [t for t in acqs if (t.get("bidAmount") or 0) == 0]
 
     print(f"\n{'=' * 74}")
@@ -230,6 +250,10 @@ def main():
                 "pos": added(t)["pos"],
                 "dropped": (dropped(t) or {}).get("name"),
                 "when": when(t.get("processDate")),
+                # next-highest bid for the same player, None if nobody else bid;
+                # overspend = what the winner paid above it (the whole bid if alone)
+                "second_bid": second_bid(t),
+                "overspend": (t.get("bidAmount") or 0) - (second_bid(t) or 0),
             # Chronological, by when the claim processed. Sorting by bid size
             # within a week scrambles add/drop chains into nonsense: TMWA's
             # week 4 reads as dropping Kaleb Johnson twice with one add,
@@ -291,6 +315,8 @@ def main():
         "league": LEAGUE,
         "season": SEASON,
         "budget": budget,
+        # Losing bids are published by ESPN, so second bids / overspend exist.
+        "has_second_bids": True,
         "minimum_bid": acq.get("minimumBid"),
         "acquisition_type": acq.get("acquisitionType"),
         "teams": rows,

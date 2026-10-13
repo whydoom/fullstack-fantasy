@@ -75,7 +75,7 @@ def main(league_key):
     weeks = sorted({g[0] for g in games})
     print(f"season {season}: {n} teams, {len(weeks)} completed weeks {weeks}")
 
-    stats = {tid: {"w": 0, "l": 0, "t": 0, "pf": 0.0, "ev": 0.0,
+    stats = {tid: {"w": 0, "l": 0, "t": 0, "pf": 0.0, "ev": 0.0, "weekly": [],
                    "med_w": 0, "med_l": 0,
                    "ap_w": 0, "ap_l": 0, "ap_t": 0,
                    "close_w": 0, "close_l": 0, "close_t": 0}
@@ -110,6 +110,17 @@ def main(league_key):
             ev = (beaten + 0.5 * tied) / (n - 1)
             s["ev"] += ev
             ev_sum += ev
+
+            # the week in one line, for the site's hover table: where the score
+            # ranked (1 = highest; ties share a place), the result, and that
+            # week's luck -- actual result minus expected wins
+            won = 1.0 if pts > opp_pts else 0.0 if pts < opp_pts else 0.5
+            s["weekly"].append({
+                "week": wk, "pts": pts,
+                "rank": 1 + sum(1 for o, v in scores.items() if o != tid and v > pts),
+                "result": "W" if won == 1.0 else "L" if won == 0.0 else "T",
+                "luck": round(won - ev, 2),
+            })
 
             # the same thing as a record: n - 1 notional games every week
             s["ap_w"] += beaten
@@ -164,6 +175,7 @@ def main(league_key):
                       + (f"-{s['close_t']}" if s["close_t"] else "")
                       if (s["close_w"] + s["close_l"] + s["close_t"]) else "—"),
             "close_n": s["close_w"] + s["close_l"] + s["close_t"],
+            "weekly": s["weekly"],
         })
 
     # strongest first by the neutral-schedule measure, so the differential row

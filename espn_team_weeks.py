@@ -86,6 +86,9 @@ def weekly_ranks(pool, week):
             "name": p.get("fullName"),
             "pos": POSITIONS.get(p.get("defaultPositionId"), "?"),
             "pts": round(wk["appliedTotal"], 2),
+            # ESPN gives everyone a 0.0 total, even players who did not play; the
+            # raw stat line tells them apart -- empty or all zeros means no game.
+            "played": any(v for v in (wk.get("stats") or {}).values()),
         })
 
     out = {}
@@ -94,7 +97,7 @@ def weekly_ranks(pool, week):
                        key=lambda r: (-r["pts"], r["name"] or ""))
         for i, r in enumerate(group, 1):
             out[r["id"]] = {"pos": pos, "rank": i, "pts": r["pts"],
-                            "name": r["name"]}
+                            "name": r["name"], "played": r["played"]}
     return out
 
 
@@ -343,6 +346,8 @@ def main(league_key):
                     "rank": r["rank"] if r else None,
                     "pts": r["pts"] if r else None,
                     "status": statuses.get(wk, "off"),
+                    # no stat line at all is also "did not play"
+                    "played": bool(r and r["played"]),
                 }
             st = season_tot.get(pid)
             players.append({

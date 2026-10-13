@@ -16,13 +16,27 @@
 
 from __future__ import annotations
 
+# Order is display order: the site's league switcher lists leagues as they
+# appear here.
+#
+# `median_game`: the league also scores every team against the week's median, so
+# a team's standings record is its head-to-head record plus its vs-median record.
+# `highlight`: the team abbreviation the site highlights by default.
 LEAGUES = {
+    "adn": {
+        "platform": "yahoo",
+        "yahoo_league_name": "ADN Alumni",
+        "label": "ADN",
+        "page": "adn.html",
+        "highlight": "JUST",
+    },
     "college-forever": {
         "platform": "espn",
         "league_id": "1526935",
         "creds": "CF",
         "label": "College Forever",
         "page": "college-forever.html",
+        "highlight": "JOHN",
     },
     "carrboro": {
         "platform": "espn",
@@ -30,12 +44,8 @@ LEAGUES = {
         "creds": "FL",
         "label": "Carrboro",
         "page": "carrboro.html",
-    },
-    "adn": {
-        "platform": "yahoo",
-        "yahoo_league_name": "ADN Alumni",
-        "label": "ADN",
-        "page": "adn.html",
+        "median_game": True,
+        "highlight": "MURT",
     },
 }
 

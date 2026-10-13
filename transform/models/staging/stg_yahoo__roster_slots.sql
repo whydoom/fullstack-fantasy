@@ -70,6 +70,13 @@ renamed as (
         -- compared against Yahoo's official team totals, and must match to the cent.
         cast(json_extract_string(player, '$[*].player_points.total')[1]
              as decimal(7, 2))                                                as fantasy_points,
+        -- Whether any of the week's raw stats is non-zero. Yahoo reports a full
+        -- stat line of zeros for a player who did not play (bye, inactive), so
+        -- this separates "did not play" from "played and scored 0" -- the one
+        -- case it cannot see is a player who was active but recorded nothing.
+        coalesce(list_count(list_filter(
+            json_extract_string(player, '$[*].player_stats.stats[*].stat.value'),
+            v -> v not in ('0', '0.0', '-', ''))) > 0, false)                 as recorded_stats,
 
         -- Provenance ----------------------------------------------------------
         cast(payload ->> '$._meta.fetched_at' as timestamptz)                 as fetched_at

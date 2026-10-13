@@ -137,7 +137,7 @@ def export(league: str) -> None:
     slots_by_week = defaultdict(lambda: defaultdict(list))   # week -> team -> slot rows
     for r in rows(con, """select s.week, s.team_id, s.player_key, s.selected_position,
                                  s.eligible_positions, s.is_starter, s.fantasy_points,
-                                 p.player_name, p.display_position
+                                 p.player_name, p.display_position, p.recorded_stats
                           from fct_roster_slot s
                           join stg_yahoo__roster_slots p using (league_key, week, player_key)
                           where s.league_key = ?""", lk):
@@ -213,6 +213,7 @@ def export(league: str) -> None:
                 h["status"][w] = "start" if r["is_starter"] else "bench"
                 h["pts"][w] = float(r["fantasy_points"])
                 h["slot"][w] = label(r["selected_position"])
+                h.setdefault("played", {})[w] = bool(r["recorded_stats"])
         players_out = []
         for pk, h in held.items():
             group = position_group(h["meta"]["display_position"])
@@ -235,13 +236,19 @@ def export(league: str) -> None:
                 # can start in the IDP slot, and the site's starter lists go by slot.
                 if w in h["slot"]:
                     cells[str(w)]["slot"] = h["slot"][w]
+                    # Did he play? Known only for weeks he was on a roster (from
+                    # his stat line); the site shows DNP / ZERO from it.
+                    cells[str(w)]["played"] = h["played"][w]
             s_rank, s_pts = cell("SEASON")
             players_out.append({"id": pk, "name": h["meta"]["player_name"], "pos": label(group),
                                 "season": {"rank": s_rank, "pts": s_pts}, "weeks": cells})
         players_out.sort(key=lambda p: (POSITION_ORDER.index(p["pos"]), p["name"]))
         grid[str(tid)] = players_out
     (out_dir / "yahoo_team_weeks.json").write_text(json.dumps(
-        dict(header, teams=teams, slot_order=SLOT_ORDER, grid=grid, scores=scores),
+        # rank_depth: ranks exist only for the pool's top N per position, so the
+        # site labels an unranked player who scored as e.g. "IDP75+".
+        dict(header, teams=teams, slot_order=SLOT_ORDER, grid=grid, scores=scores,
+             rank_depth=75),
         indent=2), encoding="utf-8")
 
     # ---- luck ---------------------------------------------------------------
@@ -279,6 +286,22 @@ def export(league: str) -> None:
             "close": rec(r["cw"], r["cl"], r["ct"]) if close_n else "—",
             "close_n": close_n,
         })
+    # Each team's weeks, for the site's hover table: score rank (1 = highest; ties
+    # share a place, so 1 + teams that outscored it), result, and that week's
+    # luck -- actual result minus expected wins.
+    weekly = defaultdict(list)
+    for r in rows(con, """
+        select a.team_id, a.week, a.team_points, a.allplay_losses, a.expected_wins, m.result
+        from fct_team_week_allplay a
+        join fct_matchup m using (league_key, week, team_id)
+        where a.league_key = ? order by a.week""", lk):
+        won = {"W": 1.0, "L": 0.0, "T": 0.5}[r["result"]]
+        weekly[r["team_id"]].append({
+            "week": r["week"], "pts": float(r["team_points"]),
+            "rank": 1 + r["allplay_losses"], "result": r["result"],
+            "luck": round(won - float(r["expected_wins"]), 2)})
+    for row in luck:
+        row["weekly"] = weekly[row["team_id"]]
     luck.sort(key=lambda r: -r["ev"])
     (out_dir / "yahoo_luck.json").write_text(json.dumps(
         dict(header, n_teams=len(teams), close_margin=CLOSE_MARGIN, rows=luck),
