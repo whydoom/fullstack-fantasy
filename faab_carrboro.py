@@ -46,9 +46,8 @@ from __future__ import annotations
 import json
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime
 
-from src.ingest.espn import BASE, PROJECT_ROOT, EspnClient, current_season
+from src.ingest.espn import PROJECT_ROOT, EspnClient, current_season
 
 SEASON = current_season()
 LEAGUE = "carrboro"
@@ -59,84 +58,17 @@ WEEK = int(sys.argv[1]) if len(sys.argv) > 1 else None
 # resolve through leagues_site.data_path(league, "faab").
 OUT = PROJECT_ROOT / "data" / "processed" / LEAGUE / "espn_faab.json"
 
-POSITIONS = {1: "QB", 2: "RB", 3: "WR", 4: "TE", 5: "K", 16: "DST"}
-POOL = 0  # ESPN's team id for the free-agent pool
-
-
-def when(ms):
-    return datetime.fromtimestamp(ms / 1000).strftime("%b %d %H:%M") if ms else "?"
+# Transaction reading is shared with pickups_espn.py (src/ingest/espn_transactions).
+from src.ingest.espn_transactions import POOL, POSITIONS, classify, when  # noqa: E402
+from src.ingest import espn_transactions as _tx  # noqa: E402
 
 
 def collect(client):
-    seen = {}
-    for wk in range(0, 19):
-        try:
-            data = client.get(
-                f"seasons/{SEASON}/segments/0/leagues/{client.league_id}",
-                params=[("view", "mTransactions2"), ("scoringPeriodId", wk)],
-            )
-        except Exception:
-            continue
-        obj = data[0] if isinstance(data, list) and data else data
-        for t in obj.get("transactions") or []:
-            seen.setdefault(t.get("id"), t)
-    return seen
-
-
-def classify(t):
-    """What did this transaction actually DO? Read the items, not the type."""
-    if t.get("type") == "DRAFT":
-        return "DRAFT"
-    if str(t.get("type") or "").startswith("TRADE"):
-        return "TRADE"
-
-    items = t.get("items") or []
-    pool_add = any(i.get("type") == "ADD" and (i.get("fromTeamId") or 0) == POOL
-                   for i in items)
-    pool_drop = any(i.get("type") == "DROP" and (i.get("toTeamId") or 0) == POOL
-                    for i in items)
-    # a move whose player started and ended on the same real team
-    internal = any((i.get("fromTeamId") or 0) == (i.get("toTeamId") or 0) != POOL
-                   for i in items)
-
-    if pool_add:
-        return "ACQUISITION"
-    if pool_drop:
-        return "DROP"
-    if internal or any(i.get("type") == "LINEUP" for i in items):
-        return "LINEUP"
-    return "OTHER"
+    return _tx.collect(client, SEASON)
 
 
 def player_names(client, ids):
-    out = {}
-    ids = sorted({i for i in ids if i})
-    for i in range(0, len(ids), 250):
-        chunk = ids[i:i + 250]
-        headers = dict(client.session.headers)
-        headers["X-Fantasy-Filter"] = json.dumps({"players": {
-            "filterIds": {"value": chunk},
-            "limit": len(chunk) + 25,
-            "sortPercOwned": {"sortPriority": 1, "sortAsc": False},
-        }})
-        try:
-            r = client.session.get(
-                f"{BASE}/seasons/{SEASON}/segments/0/leagues/{client.league_id}",
-                params=[("view", "kona_player_info")],
-                cookies=client.cookies, headers=headers, timeout=90,
-            )
-            r.raise_for_status()
-            d = r.json()
-            obj = d[0] if isinstance(d, list) and d else d
-            for e in obj.get("players") or []:
-                p = e.get("player") or {}
-                out[p.get("id")] = {
-                    "name": p.get("fullName") or "?",
-                    "pos": POSITIONS.get(p.get("defaultPositionId"), "?"),
-                }
-        except Exception as exc:
-            print(f"  (name chunk failed: {type(exc).__name__} {str(exc)[:80]})")
-    return out
+    return _tx.player_names(client, SEASON, ids)
 
 
 def main():

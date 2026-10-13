@@ -217,6 +217,9 @@ def export(league: str) -> None:
                 h["pts"][w] = float(r["fantasy_points"])
                 h["slot"][w] = label(r["selected_position"])
                 h.setdefault("played", {})[w] = bool(r["recorded_stats"])
+                # lineup slots he could fill that week, in site labels
+                h.setdefault("eligible", {})[w] = [label(e) for e in r["eligible_positions"]
+                                                   if e not in ("BN", "IR")]
         players_out = []
         for pk, h in held.items():
             group = position_group(h["meta"]["display_position"])
@@ -242,6 +245,9 @@ def export(league: str) -> None:
                     # Did he play? Known only for weeks he was on a roster (from
                     # his stat line); the site shows DNP / ZERO from it.
                     cells[str(w)]["played"] = h["played"][w]
+                    # Slots he could have filled that week -- a WR,CB can fill
+                    # IDP -- for anything rebuilding a best lineup by name.
+                    cells[str(w)]["eligible"] = h["eligible"][w]
             s_rank, s_pts = cell("SEASON")
             players_out.append({"id": pk, "name": h["meta"]["player_name"], "pos": label(group),
                                 "season": {"rank": s_rank, "pts": s_pts}, "weeks": cells})
@@ -308,6 +314,29 @@ def export(league: str) -> None:
     for row in luck:
         row["weekly"] = weekly[row["team_id"]]
     luck.sort(key=lambda r: -r["ev"])
+
+    # ---- pickups: every add, waiver claim or $0 free agent ----------------
+    picks = defaultdict(list)
+    for r in rows(con, """
+        select a.to_team_id as team_id, a.week, coalesce(a.faab_bid, 0) as bid,
+               a.source_type, a.transacted_at, p.player_name, p.display_position,
+               d.player_name as dropped
+        from fct_transaction a
+        join stg_yahoo__transaction_players p using (transaction_key, player_key)
+        left join fct_transaction d_f
+            on  d_f.transaction_key = a.transaction_key and d_f.leg_type = 'drop'
+        left join stg_yahoo__transaction_players d
+            on  d.transaction_key = d_f.transaction_key and d.player_key = d_f.player_key
+        where a.league_key = ? and a.leg_type = 'add'
+        order by a.transacted_at, a.transaction_id""", lk):
+        picks[str(r["team_id"])].append({
+            "week": r["week"], "player": r["player_name"],
+            "pos": label(position_group(r["display_position"])), "bid": r["bid"],
+            "source": "waivers" if r["source_type"] == "waivers" else "free agent",
+            "dropped": r["dropped"],
+            "when": r["transacted_at"].astimezone(_ET).strftime("%b %d %H:%M")})
+    (out_dir / "yahoo_pickups.json").write_text(json.dumps(
+        {"league": league, "season": season, "teams": picks}, indent=2), encoding="utf-8")
     (out_dir / "yahoo_luck.json").write_text(json.dumps(
         dict(header, n_teams=len(teams), close_margin=CLOSE_MARGIN, rows=luck),
         indent=2), encoding="utf-8")
