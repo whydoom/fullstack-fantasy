@@ -57,6 +57,11 @@ POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP"]
 SLOT_ORDER = ["QB", "RB", "WR", "TE", "K", "DST", "IDP", "FLEX"]
 LEADERS_ORDER = ["RB", "WR", "QB", "TE", "K", "DST", "IDP"]   # espn_leaders' order
 LEADERS_DEPTH = 25
+# K, DST and IDP are shown as started lineups with figures above them: a top-32
+# average, and a count of unstarted players who beat the 3rd-best starter. That
+# count needs every player above the bar, so these carry everything the pool
+# lands (75), not just 32.
+LINEUP_DEPTH = {"K": 75, "DST": 75, "IDP": 75}
 _ET = ZoneInfo("America/New_York")   # Yahoo week windows are US Eastern dates
 CLOSE_MARGIN = 5.0   # must match the close_game_margin var fct_team_week_allplay uses
 
@@ -158,7 +163,7 @@ def export(league: str) -> None:
         for pos in LEADERS_ORDER:
             yahoo_pos = next((k for k, v in LABEL.items() if v == pos), pos)
             top = sorted((r for (g, _), r in ranks[period].items() if g == yahoo_pos),
-                         key=lambda r: r["position_rank"])[:LEADERS_DEPTH]
+                         key=lambda r: r["position_rank"])[:LINEUP_DEPTH.get(pos, LEADERS_DEPTH)]
             groups.append({"pos": pos, "players": [
                 {"name": r["player_name"], "pos": pos,
                  "pts": float(r["fantasy_points"]),
@@ -201,12 +206,13 @@ def export(league: str) -> None:
                             for k in ("actual", "optimal")} for l in labels}}
         scores[str(tid)] = per_week
 
-        held = {}   # player_key -> {"meta": row, "status": {week: status}, "pts": {week: pts}}
+        held = {}   # player_key -> {"meta": row, "status": {week: ...}, "pts": ..., "slot": ...}
         for w in weeks:
             for r in slots_by_week[w][tid]:
-                h = held.setdefault(r["player_key"], {"meta": r, "status": {}, "pts": {}})
+                h = held.setdefault(r["player_key"], {"meta": r, "status": {}, "pts": {}, "slot": {}})
                 h["status"][w] = "start" if r["is_starter"] else "bench"
                 h["pts"][w] = float(r["fantasy_points"])
+                h["slot"][w] = label(r["selected_position"])
         players_out = []
         for pk, h in held.items():
             group = position_group(h["meta"]["display_position"])
@@ -224,6 +230,11 @@ def export(league: str) -> None:
                 if w in h["pts"]:
                     pts = h["pts"][w]
                 cells[str(w)] = {"rank": rank, "pts": pts, "status": h["status"].get(w, "off")}
+                # The lineup slot he filled that week, in site labels. Usually his
+                # position, but not always: a two-way player (Travis Hunter, WR,CB)
+                # can start in the IDP slot, and the site's starter lists go by slot.
+                if w in h["slot"]:
+                    cells[str(w)]["slot"] = h["slot"][w]
             s_rank, s_pts = cell("SEASON")
             players_out.append({"id": pk, "name": h["meta"]["player_name"], "pos": label(group),
                                 "season": {"rank": s_rank, "pts": s_pts}, "weeks": cells})

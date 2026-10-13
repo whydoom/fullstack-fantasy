@@ -20,8 +20,12 @@ from espn_team_weeks import (ACTUAL, WEEKLY, POSITIONS, cli, fetch_pool,
 OUT_NAME = "espn_leaders.json"
 
 # position -> how many rows to show
-# RB/WR run 25 so the stacked columns line up: 12 + one header row + 12 = 25
-GROUPS = [("RB", 25), ("WR", 25), ("QB", 12), ("TE", 12), ("K", 12), ("DST", 12)]
+# Skill groups keep 25; how many a page shows is the site's layout decision (its
+# leaders renderer cuts a stacked column to 12 + one header row + 12 = 25 rows).
+# K and DST keep 64, i.e. every one who played: the site shows them as started
+# lineups with a top-32 average above them and a count of unstarted players who
+# beat the 3rd-best starter, which needs everyone above that bar.
+GROUPS = [("RB", 25), ("WR", 25), ("QB", 25), ("TE", 25), ("K", 64), ("DST", 64)]
 
 
 def extract(pool, season, week=None):
