@@ -91,3 +91,45 @@ models:
           - unique
           - not_null
 
+  - name: stg_nflverse__pbp
+    description: >
+      One row per play, every play kept. Typed and renamed; ~90 of nflverse's 372
+      columns (situation, result, yardage, every player id, EPA / WPA).
+    columns:
+      - name: game_id
+        tests:
+          - not_null
+      - name: play_id
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, play_id]
+
+  - name: stg_nflverse__snap_counts
+    description: One row per player per game; snap counts and share (PFR ids).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, pfr_player_id]
+
+  - name: stg_nflverse__ff_opportunity_weekly
+    description: >
+      One row per player per game: actual and usage-expected stat components, so
+      they can be scored under each league's rules.
+    columns:
+      - name: player_id
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, player_id]
+
+  - name: stg_nflverse__ftn_charting
+    description: One row per charted play; joins one to one to stg_nflverse__pbp.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, play_id]

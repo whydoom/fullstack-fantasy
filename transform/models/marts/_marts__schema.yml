@@ -70,14 +70,31 @@ models:
 
   - name: dim_game
     description: >
-      One row per NFL game, 2020-present including postseason. Thin pass-through of
-      stg_nflverse__schedules — see the model SQL for why there's no transformation
-      to add at this layer.
+      One row per NFL game, 2020-present including postseason: the typed game record
+      plus its fantasy timing -- slot, slate, region (US / Europe / International,
+      from seed nfl_venues) and primetime (8pm ET or later, in the US).
     columns:
       - name: game_id
         tests:
           - unique
           - not_null
+      - name: slot
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['thursday_night', 'thursday_day', 'sunday_early', 'sunday_late',
+                         'sunday_night', 'monday', 'other_day']
+      - name: slate
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['thursday', 'sunday_day', 'sunday_night', 'monday', 'other_day']
+      - name: region
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['US', 'Europe', 'International']
 
   - name: fct_player_week
     description: >

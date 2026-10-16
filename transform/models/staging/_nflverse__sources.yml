@@ -64,3 +64,21 @@ sources:
               Yahoo's documented key structure. ASSUMPTION, not yet verified against
               a real Yahoo payload — confirm this once Yahoo ingestion lands before
               relying on it for a join.
+      - name: pbp
+        description: >
+          One row per play (play-by-play), 2026 on: 372 columns -- situation, result,
+          every player id on the play, EPA / WPA. Landed whole; the fantasy marts keep
+          the slices they need.
+      - name: snap_counts
+        description: One row per player per game (PFR snap counts), 2026 on.
+      - name: ff_opportunity_weekly
+        description: >
+          One row per player per game, 2026 on: actual production and expected
+          production from usage (ffopportunity). Includes one empty row per team per
+          game with no player, dropped in staging.
+      - name: ff_opportunity_pbp_pass
+        description: One row per pass play with its expected outcomes, 2026 on.
+      - name: ff_opportunity_pbp_rush
+        description: One row per rush play with its expected outcomes, 2026 on.
+      - name: ftn_charting
+        description: One row per charted play (FTN Data), 2026 on; runs about a day behind.

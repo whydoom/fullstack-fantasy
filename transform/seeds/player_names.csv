@@ -1,0 +1,291 @@
+gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,display_name,match_key,matched_by
+,-16025,100025,DST,SF,,49ers D/ST,49ers,49ers,49ers,
+,-16003,100003,DST,CHI,,Bears D/ST,Bears,Bears,bears,
+,-16004,100004,DST,CIN,,Bengals D/ST,Bengals,Bengals,bengals,
+,-16002,100002,DST,BUF,,Bills D/ST,Bills,Bills,bills,
+,-16007,100007,DST,DEN,,Broncos D/ST,Broncos,Broncos,broncos,
+,-16005,100005,DST,CLE,,Browns D/ST,Browns,Browns,browns,
+,-16027,100027,DST,TB,,Buccaneers D/ST,Buccaneers,Buccaneers,buccaneers,
+,-16024,100024,DST,SD,,Chargers D/ST,Chargers,Chargers,chargers,
+,-16012,100012,DST,KC,,Chiefs D/ST,Chiefs,Chiefs,chiefs,
+,-16028,,DST,WAS,,Commanders D/ST,,Commanders,commanders,
+,-16006,100006,DST,DAL,,Cowboys D/ST,Cowboys,Cowboys,cowboys,
+,-16021,100021,DST,PHI,,Eagles D/ST,Eagles,Eagles,eagles,
+,-16030,100030,DST,JAX,,Jaguars D/ST,Jaguars,Jaguars,jaguars,
+,-16020,,DST,NYJ,,Jets D/ST,,Jets,jets,
+,-16008,100008,DST,DET,,Lions D/ST,Lions,Lions,lions,
+,,100009,DST,GB,,,Packers,Packers,packers,
+,-16029,100029,DST,CAR,,Panthers D/ST,Panthers,Panthers,panthers,
+,-16017,100017,DST,NE,,Patriots D/ST,Patriots,Patriots,patriots,
+,,100013,DST,OAK,,,Raiders,Raiders,raiders,
+,-16014,100014,DST,STL,,Rams D/ST,Rams,Rams,rams,
+,-16033,100033,DST,BAL,,Ravens D/ST,Ravens,Ravens,ravens,
+,-16026,100026,DST,SEA,,Seahawks D/ST,Seahawks,Seahawks,seahawks,
+,-16023,100023,DST,PIT,,Steelers D/ST,Steelers,Steelers,steelers,
+,-16034,100034,DST,HOU,,Texans D/ST,Texans,Texans,texans,
+,-16010,,DST,TEN,,Titans D/ST,,Titans,titans,
+,-16016,100016,DST,MIN,,Vikings D/ST,Vikings,Vikings,vikings,
+00-0031898,,28716,IDP,,Alex Singleton,,Alex Singleton,Alex Singleton,alex singleton,id
+00-0035687,,31921,IDP,,Bobby Okereke,,Bobby Okereke,Bobby Okereke,bobby okereke,id
+00-0040579,,41818,IDP,,Carson Schwesinger,,Carson Schwesinger,Carson Schwesinger,carson schwesinger,name
+00-0037244,,33982,IDP,,Devin Lloyd,,Devin Lloyd,Devin Lloyd,devin lloyd,id
+00-0035707,,31837,IDP,,Devin White,,Devin White,Devin White,devin white,id
+00-0036994,,33491,IDP,,Ernest Jones,,Ernest Jones IV,Ernest Jones IV,ernest jones,id
+00-0034413,,31170,IDP,,Foyesade Oluokun,,Foyesade Oluokun,Foyesade Oluokun,foyesade oluokun,id
+00-0034815,,31040,IDP,,Fred Warner,,Fred Warner,Fred Warner,fred warner,id
+00-0036914,,33418,IDP,,Gregory Rousseau,,Greg Rousseau,Greg Rousseau,greg rousseau,id
+00-0039018,,40036,IDP,,Jack Campbell,,Jack Campbell,Jack Campbell,jack campbell,id
+00-0035643,,31851,IDP,,Jeffery Simmons,,Jeffery Simmons,Jeffery Simmons,jeffery simmons,id
+00-0040708,,41816,IDP,,Jihaad Campbell,,Jihaad Campbell,Jihaad Campbell,jihaad campbell,name
+00-0036409,,32697,IDP,,Jordyn Brooks,,Jordyn Brooks,Jordyn Brooks,jordyn brooks,id
+00-0038038,,33969,IDP,,Kyle Hamilton,,Kyle Hamilton,Kyle Hamilton,kyle hamilton,id
+00-0033868,,30114,IDP,,Myles Garrett,,Myles Garrett,Myles Garrett,myles garrett,id
+00-0037615,,34039,IDP,,Nakobe Dean,,Nakobe Dean,Nakobe Dean,nakobe dean,id
+00-0036621,,33446,IDP,,Nick Bolton,,Nick Bolton,Nick Bolton,nick bolton,id
+00-0034874,,30978,IDP,,Roquan Smith,,Roquan Smith,Roquan Smith,roquan smith,id
+00-0033886,,30143,IDP,,T.J. Watt,,T.J. Watt,T.J. Watt,tj watt,id
+00-0039108,,40031,IDP,,Will Anderson,,Will Anderson Jr.,Will Anderson Jr.,will anderson,id
+00-0037692,3953687,40819,K,,Brandon Aubrey,Brandon Aubrey,Brandon Aubrey,Brandon Aubrey,brandon aubrey,id
+00-0031203,,28227,K,,Cairo Santos,,Cairo Santos,Cairo Santos,cairo santos,id
+00-0039409,4686361,41062,K,,Cam Little,Cam Little,Cam Little,Cam Little,cam little,id
+00-0037224,4362081,34344,K,,Cameron Dicker,Cameron Dicker,Cameron Dicker,Cameron Dicker,cameron dicker,id
+00-0031136,17372,28188,K,,Chris Boswell,Chris Boswell,Chris Boswell,Chris Boswell,chris boswell,id
+00-0034173,4034949,31482,K,,Eddy Pineiro,Eddy Pineiro,Eddy Pineiro,Eddy Pineiro,eddy pineiro,id
+00-0036854,4360234,33537,K,,Evan McPherson,Evan McPherson,Evan McPherson,Evan McPherson,evan mcpherson,id
+00-0033303,3055899,30346,K,,Harrison Butker,Harrison Butker,Harrison Butker,Harrison Butker,harrison butker,id
+00-0039498,4574716,41312,K,,Harrison Mevis,Harrison Mevis,Harrison Mevis,Harrison Mevis,harrison mevis,id
+00-0039172,4689936,40835,K,,Jake Bates,Jake Bates,Jake Bates,Jake Bates,jake bates,id
+00-0031492,2473037,28378,K,,Jason Myers,Jason Myers,Jason Myers,Jason Myers,jason myers,id
+00-0032726,2971573,29792,K,,Ka'imi Fairbairn,Ka'imi Fairbairn,Ka'imi Fairbairn,Ka'imi Fairbairn,kaimi fairbairn,id
+00-0035269,4249087,,K,,Matt Gay,Matt Gay,,Matt Gay,matt gay,id
+00-0039576,4571557,41499,K,,Spencer Shrader,Spencer Shrader,Spencer Shrader,Spencer Shrader,spencer shrader,id
+00-0040074,4697745,41988,K,,Tyler Loop,Tyler Loop,Tyler Loop,Tyler Loop,tyler loop,id
+00-0032569,2985659,,K,,Wil Lutz,Wil Lutz,,Wil Lutz,wil lutz,id
+00-0039404,4567104,41093,K,,Will Reichard,Will Reichard,Will Reichard,Will Reichard,will reichard,id
+00-0023459,8439,,QB,,Aaron Rodgers,Aaron Rodgers,,Aaron Rodgers,aaron rodgers,id
+00-0034855,3052587,,QB,,Baker Mayfield,Baker Mayfield,,Baker Mayfield,baker mayfield,id
+00-0039732,4426338,40875,QB,,Bo Nix,Bo Nix,Bo Nix,Bo Nix,bo nix,id
+00-0037834,4361741,34218,QB,,Brock Purdy,Brock Purdy,Brock Purdy,Brock Purdy,brock purdy,id
+00-0039150,4685720,40029,QB,,Bryce Young,Bryce Young,Bryce Young,Bryce Young,bryce young,id
+00-0039918,4431611,40900,QB,,Caleb Williams,Caleb Williams,Caleb Williams,Caleb Williams,caleb williams,id
+00-0040676,4688380,,QB,,Cam Ward,Cam Ward,,Cam Ward,cam ward,id
+00-0039163,4432577,40030,QB,,C.J. Stroud,C.J. Stroud,C.J. Stroud,C.J. Stroud,cj stroud,id
+00-0033077,2577417,29369,QB,,Dak Prescott,Dak Prescott,Dak Prescott,Dak Prescott,dak prescott,id
+00-0035710,3917792,,QB,,Daniel Jones,Daniel Jones,,Daniel Jones,daniel jones,id
+00-0039851,4431452,40881,QB,,Drake Maye,Drake Maye,Drake Maye,Drake Maye,drake maye,id
+00-0033119,2578570,29325,QB,,Jacoby Brissett,Jacoby Brissett,Jacoby Brissett,Jacoby Brissett,jacoby brissett,id
+00-0036389,4040715,32723,QB,,Jalen Hurts,Jalen Hurts,Jalen Hurts,Jalen Hurts,jalen hurts,id
+00-0033106,3046779,29235,QB,,Jared Goff,Jared Goff,Jared Goff,Jared Goff,jared goff,id
+00-0040691,4689114,41810,QB,,Jaxson Dart,Jaxson Dart,Jaxson Dart,Jaxson Dart,jaxson dart,id
+00-0039910,4426348,40896,QB,,Jayden Daniels,Jayden Daniels,Jayden Daniels,Jayden Daniels,jayden daniels,id
+00-0036442,3915511,32671,QB,,Joe Burrow,Joe Burrow,Joe Burrow,Joe Burrow,joe burrow,id
+00-0036264,4036378,32696,QB,,Jordan Love,Jordan Love,Jordan Love,Jordan Love,jordan love,id
+00-0034857,3918298,30977,QB,,Josh Allen,Josh Allen,Josh Allen,Josh Allen,josh allen,id
+00-0036355,4038941,32676,QB,,Justin Herbert,Justin Herbert,Justin Herbert,Justin Herbert,justin herbert,id
+00-0035228,3917315,31833,QB,,Kyler Murray,Kyler Murray,Kyler Murray,Kyler Murray,kyler murray,id
+00-0034796,3916387,31002,QB,,Lamar Jackson,Lamar Jackson,Lamar Jackson,Lamar Jackson,lamar jackson,id
+00-0038128,4242512,,QB,,Malik Willis,Malik Willis,,Malik Willis,malik willis,id
+00-0026498,12483,9265,QB,,Matthew Stafford,Matthew Stafford,Matthew Stafford,Matthew Stafford,matthew stafford,id
+00-0039917,4360423,,QB,,Michael Penix Jr.,Michael Penix Jr.,,Michael Penix Jr.,michael penix,id
+00-0033873,3139477,30123,QB,,Patrick Mahomes,Patrick Mahomes,Patrick Mahomes,Patrick Mahomes,patrick mahomes,id
+00-0034869,3912547,,QB,,Sam Darnold,Sam Darnold,,Sam Darnold,sam darnold,id
+00-0036971,4360310,33389,QB,,Trevor Lawrence,Trevor Lawrence,Trevor Lawrence,Trevor Lawrence,trevor lawrence,id
+00-0040743,4360689,41825,QB,,Tyler Shough,Tyler Shough,Tyler Shough,Tyler Shough,tyler shough,id
+00-0033293,3042519,30295,RB,,Aaron Jones,Aaron Jones Sr.,Aaron Jones Sr.,Aaron Jones Sr.,aaron jones,id
+00-0036265,4239934,,RB,,AJ Dillon,AJ Dillon,,AJ Dillon,aj dillon,id
+00-0033906,3054850,30180,RB,,Alvin Kamara,Alvin Kamara,Alvin Kamara,Alvin Kamara,alvin kamara,id
+00-0040122,4890973,41791,RB,,Ashton Jeanty,Ashton Jeanty,Ashton Jeanty,Ashton Jeanty,ashton jeanty,id
+00-0033699,3068267,,RB,,Austin Ekeler,Austin Ekeler,,Austin Ekeler,austin ekeler,id
+00-0040719,4882093,41900,RB,,Bhayshul Tuten,Bhayshul Tuten,Bhayshul Tuten,Bhayshul Tuten,bhayshul tuten,id
+00-0038542,4430807,40055,RB,,Bijan Robinson,Bijan Robinson,Bijan Robinson,Bijan Robinson,bijan robinson,id
+00-0039738,4429096,40962,RB,,Blake Corum,Blake Corum,Blake Corum,Blake Corum,blake corum,id
+00-0039794,4685247,40981,RB,,Braelon Allen,Braelon Allen,Braelon Allen,Braelon Allen,braelon allen,id
+00-0038120,4427366,33991,RB,,Breece Hall,Breece Hall,Breece Hall,Breece Hall,breece hall,id
+00-0037746,4241474,34054,RB,,Brian Robinson,Brian Robinson Jr.,Brian Robinson,Brian Robinson Jr.,brian robinson,id
+00-0039361,4596448,40993,RB,,Bucky Irving,Bucky Irving,Bucky Irving,Bucky Irving,bucky irving,id
+00-0040715,4696981,41922,RB,,Cam Skattebo,Cam Skattebo,Cam Skattebo,Cam Skattebo,cam skattebo,id
+00-0038597,4362238,40196,RB,,Chase Brown,Chase Brown,Chase Brown,Chase Brown,chase brown,id
+00-0038685,3149687,,RB,,Chris Brooks,Chris Brooks,,Chris Brooks,chris brooks,id
+00-0038611,4362619,40231,RB,,Chris Rodriguez,Chris Rodriguez Jr.,Chris Rodriguez Jr.,Chris Rodriguez Jr.,chris rodriguez,id
+00-0033280,3117251,30121,RB,,Christian McCaffrey,Christian McCaffrey,Christian McCaffrey,Christian McCaffrey,christian mccaffrey,id
+00-0036555,4241416,33514,RB,,Chuba Hubbard,Chuba Hubbard,Chuba Hubbard,Chuba Hubbard,chuba hubbard,id
+00-0036275,4259545,32705,RB,,D'Andre Swift,D'Andre Swift,D'Andre Swift,D'Andre Swift,dandre swift,id
+00-0035685,4035538,31905,RB,,David Montgomery,David Montgomery,David Montgomery,David Montgomery,david montgomery,id
+00-0032764,3043078,29279,RB,,Derrick Henry,Derrick Henry,Derrick Henry,Derrick Henry,derrick henry,id
+00-0035250,4040761,,RB,,Devin Singletary,Devin Singletary,,Devin Singletary,devin singletary,id
+00-0039040,4429160,40118,RB,,De'Von Achane,De'Von Achane,De'Von Achane,De'Von Achane,devon achane,id
+00-0040162,5081397,,RB,,Dylan Sampson,Dylan Sampson,,Dylan Sampson,dylan sampson,id
+00-0038797,4887558,40707,RB,,Emanuel Wilson,Emanuel Wilson,Emanuel Wilson,Emanuel Wilson,emanuel wilson,id
+00-0038705,4362478,,RB,,Emari Demercado,Emari Demercado,,Emari Demercado,emari demercado,id
+00-0041013,4832955,42796,RB,,Emmett Johnson,Emmett Johnson,Emmett Johnson,Emmett Johnson,emmett johnson,id
+00-0039299,4429835,41344,RB,,George Holani,George Holani,George Holani,George Holani,george holani,id
+00-0039798,4695404,,RB,,Isaiah Davis,Isaiah Davis,,Isaiah Davis,isaiah davis,id
+00-0037197,4361529,,RB,,Isiah Pacheco,Isiah Pacheco,,Isiah Pacheco,isiah pacheco,id
+00-0038896,,40474,RB,,Jacob Saylors,,Jacob Saylors,Jacob Saylors,jacob saylors,name
+00-0040242,4575131,42010,RB,,Jacory Croskey-Merritt,Jacory Croskey-Merritt,Jacory Croskey-Merritt,Jacory Croskey-Merritt,jacory croskey merritt,id
+00-0041512,4685512,42654,RB,,Jadarian Price,Jadarian Price,Jadarian Price,Jadarian Price,jadarian price,id
+00-0039139,4429795,40059,RB,,Jahmyr Gibbs,Jahmyr Gibbs,Jahmyr Gibbs,Jahmyr Gibbs,jahmyr gibbs,id
+00-0037248,4379399,34019,RB,,James Cook,James Cook III,James Cook III,James Cook III,james cook,id
+00-0036997,4361579,33423,RB,,Javonte Williams,Javonte Williams,Javonte Williams,Javonte Williams,javonte williams,id
+00-0037228,4569987,34447,RB,,Jaylen Warren,Jaylen Warren,Jaylen Warren,Jaylen Warren,jaylen warren,id
+00-0039874,4682745,41010,RB,,Jaylen Wright,Jaylen Wright,Jaylen Wright,Jaylen Wright,jaylen wright,id
+00-0041027,4870808,42625,RB,,Jeremiyah Love,Jeremiyah Love,Jeremiyah Love,Jeremiyah Love,jeremiyah love,id
+00-0036158,4241985,32725,RB,,J.K. Dobbins,J.K. Dobbins,J.K. Dobbins,J.K. Dobbins,jk dobbins,id
+00-0041496,4702555,42730,RB,,Jonah Coleman,Jonah Coleman,Jonah Coleman,Jonah Coleman,jonah coleman,id
+00-0036223,4242335,32711,RB,,Jonathan Taylor,Jonathan Taylor,Jonathan Taylor,Jonathan Taylor,jonathan taylor,id
+00-0039344,4678008,40926,RB,,Jonathon Brooks,Jonathon Brooks,Jonathon Brooks,Jonathon Brooks,jonathon brooks,id
+00-0040177,4685397,,RB,,Jordan James,Jordan James,,Jordan James,jordan james,id
+00-0037525,4360569,34320,RB,,Jordan Mason,Jordan Mason,Jordan Mason,Jordan Mason,jordan mason,id
+00-0035700,4047365,31856,RB,,Josh Jacobs,Josh Jacobs,Josh Jacobs,Josh Jacobs,josh jacobs,id
+00-0034975,4038441,31945,RB,,Justice Hill,Justice Hill,Justice Hill,Justice Hill,justice hill,id
+00-0041052,4696044,42712,RB,,Kaelon Black,Kaelon Black,Kaelon Black,Kaelon Black,kaelon black,id
+00-0040142,4819231,41881,RB,,Kaleb Johnson,Kaleb Johnson,Kaleb Johnson,Kaleb Johnson,kaleb johnson,id
+00-0038454,4596334,40641,RB,,Keaton Mitchell,Keaton Mitchell,Keaton Mitchell,Keaton Mitchell,keaton mitchell,id
+00-0038551,4599739,40108,RB,,Kendre Miller,Kendre Miller,Kendre Miller,Kendre Miller,kendre miller,id
+00-0038134,4567048,33996,RB,,Kenneth Walker III,Kenneth Walker III,Kenneth Walker III,Kenneth Walker III,kenneth walker,id
+00-0036919,4371733,33538,RB,,Kenneth Gainwell,Kenny Gainwell,Kenny Gainwell,Kenny Gainwell,kenny gainwell,id
+00-0040236,4608686,42025,RB,,Kyle Monangai,Kyle Monangai,Kyle Monangai,Kyle Monangai,kyle monangai,id
+00-0037840,4430737,34120,RB,,Kyren Williams,Kyren Williams,Kyren Williams,Kyren Williams,kyren williams,id
+00-0040238,4911851,,RB,,LeQuint Allen,LeQuint Allen Jr.,,LeQuint Allen Jr.,lequint allen,id
+00-0039811,4429023,40971,RB,,MarShawn Lloyd,MarShawn Lloyd,MarShawn Lloyd,MarShawn Lloyd,marshawn lloyd,id
+00-0040878,4686658,42744,RB,,Mike Washington Jr.,Mike Washington Jr.,Mike Washington Jr.,Mike Washington Jr.,mike washington,id
+00-0036893,4241457,,RB,,Najee Harris,Najee Harris,,Najee Harris,najee harris,id
+00-0040198,4711533,41969,RB,,Ollie Gordon II,Ollie Gordon II,Ollie Gordon II,Ollie Gordon II,ollie gordon,id
+00-0040666,4685382,41807,RB,,Omarion Hampton,Omarion Hampton,Omarion Hampton,Omarion Hampton,omarion hampton,id
+00-0040784,4685702,41821,RB,,Quinshon Judkins,Quinshon Judkins,Quinshon Judkins,Quinshon Judkins,quinshon judkins,id
+00-0037256,4697815,34047,RB,,Rachaad White,Rachaad White,Rachaad White,Rachaad White,rachaad white,id
+00-0039875,4429501,,RB,,Ray Davis,Ray Davis,,Ray Davis,ray davis,id
+00-0036875,4569173,33508,RB,,Rhamondre Stevenson,Rhamondre Stevenson,Rhamondre Stevenson,Rhamondre Stevenson,rhamondre stevenson,id
+00-0036139,4038815,33100,RB,,Rico Dowdle,Rico Dowdle,Rico Dowdle,Rico Dowdle,rico dowdle,id
+00-0040730,4568490,41845,RB,,RJ Harvey,RJ Harvey,RJ Harvey,RJ Harvey,rj harvey,id
+00-0039021,4426386,,RB,,Roschon Johnson,Roschon Johnson,,Roschon Johnson,roschon johnson,id
+00-0033526,3116389,,RB,,Samaje Perine,Samaje Perine,,Samaje Perine,samaje perine,id
+00-0034844,3929630,30972,RB,,Saquon Barkley,Saquon Barkley,Saquon Barkley,Saquon Barkley,saquon barkley,id
+00-0038555,4429013,40095,RB,,Tank Bigsby,Tank Bigsby,Tank Bigsby,Tank Bigsby,tank bigsby,id
+00-0035261,3916148,31960,RB,,Tony Pollard,Tony Pollard,Tony Pollard,Tony Pollard,tony pollard,id
+00-0036973,4239996,33413,RB,,Travis Etienne,Travis Etienne Jr.,Travis Etienne Jr.,Travis Etienne Jr.,travis etienne,id
+00-0040734,4432710,41823,RB,,TreVeyon Henderson,TreVeyon Henderson,TreVeyon Henderson,TreVeyon Henderson,treveyon henderson,id
+00-0035537,3915411,,RB,,Ty Johnson,Ty Johnson,,Ty Johnson,ty johnson,id
+00-0039032,4428557,40119,RB,,Tyjae Spears,Tyjae Spears,Tyjae Spears,Tyjae Spears,tyjae spears,id
+00-0037263,4373626,34107,RB,,Tyler Allgeier,Tyler Allgeier,Tyler Allgeier,Tyler Allgeier,tyler allgeier,id
+00-0039746,4431545,41002,RB,,Will Shipley,Will Shipley,Will Shipley,Will Shipley,will shipley,id
+00-0040583,4429059,41902,RB,,Woody Marks,Woody Marks,Woody Marks,Woody Marks,woody marks,id
+00-0039165,4426385,40075,RB,,Zach Charbonnet,Zach Charbonnet,Zach Charbonnet,Zach Charbonnet,zach charbonnet,id
+00-0039793,4576297,,TE,,AJ Barner,AJ Barner,,AJ Barner,aj barner,id
+00-0038935,4430539,,TE,,Brenton Strange,Brenton Strange,,Brenton Strange,brenton strange,id
+00-0039338,4432665,40878,TE,,Brock Bowers,Brock Bowers,Brock Bowers,Brock Bowers,brock bowers,id
+00-0037809,,34099,TE,,Chigoziem Okonkwo,,Chig Okonkwo,Chig Okonkwo,chig okonkwo,id
+00-0040126,4723086,41795,TE,,Colston Loveland,Colston Loveland,Colston Loveland,Colston Loveland,colston loveland,id
+00-0034351,3121023,31019,TE,,Dallas Goedert,Dallas Goedert,Dallas Goedert,Dallas Goedert,dallas goedert,id
+00-0038933,4385690,40048,TE,,Dalton Kincaid,Dalton Kincaid,Dalton Kincaid,Dalton Kincaid,dalton kincaid,id
+00-0034383,3117256,31107,TE,,Dalton Schultz,Dalton Schultz,Dalton Schultz,Dalton Schultz,dalton schultz,id
+00-0031610,2576925,28592,TE,,Darren Waller,Darren Waller,Darren Waller,Darren Waller,darren waller,id
+00-0033288,3040151,30259,TE,,George Kittle,George Kittle,George Kittle,George Kittle,george kittle,id
+00-0040663,5083076,41877,TE,,Harold Fannin,Harold Fannin Jr.,Harold Fannin Jr.,Harold Fannin Jr.,harold fannin,id
+00-0033090,3046439,,TE,,Hunter Henry,Hunter Henry,,Hunter Henry,hunter henry,id
+00-0037838,4361050,34095,TE,,Isaiah Likely,Isaiah Likely,Isaiah Likely,Isaiah Likely,isaiah likely,id
+00-0038041,4242355,34085,TE,,Jake Ferguson,Jake Ferguson,Jake Ferguson,Jake Ferguson,jake ferguson,id
+00-0036040,3929645,33113,TE,,Juwan Johnson,Juwan Johnson,Juwan Johnson,Juwan Johnson,juwan johnson,id
+00-0041032,5083315,42638,TE,,Kenyon Sadiq,Kenyon Sadiq,Kenyon Sadiq,Kenyon Sadiq,kenyon sadiq,id
+00-0036970,4360248,33392,TE,,Kyle Pitts,Kyle Pitts Sr.,Kyle Pitts Sr.,Kyle Pitts Sr.,kyle pitts,id
+00-0034753,3116365,31056,TE,,Mark Andrews,Mark Andrews,Mark Andrews,Mark Andrews,mark andrews,id
+00-0039066,,40065,TE,,Michael Mayer,,Michael Mayer,Michael Mayer,michael mayer,id
+00-0034829,3116164,31012,TE,,Mike Gesicki,Mike Gesicki,Mike Gesicki,Mike Gesicki,mike gesicki,id
+00-0035644,4036131,31852,TE,,Noah Fant,Noah Fant,Noah Fant,Noah Fant,noah fant,id
+00-0040189,4595342,,TE,,Oronde Gadsden,Oronde Gadsden,,Oronde Gadsden,oronde gadsden,id
+00-0039065,4430027,40064,TE,,Sam LaPorta,Sam LaPorta,Sam LaPorta,Sam LaPorta,sam laporta,id
+00-0040737,4570037,41831,TE,,Terrance Ferguson,Terrance Ferguson,Terrance Ferguson,Terrance Ferguson,terrance ferguson,id
+00-0035229,4036133,31840,TE,,T.J. Hockenson,T.J. Hockenson,T.J. Hockenson,T.J. Hockenson,tj hockenson,id
+00-0030506,15847,26686,TE,,Travis Kelce,Travis Kelce,Travis Kelce,Travis Kelce,travis kelce,id
+00-0037744,4361307,34010,TE,,Trey McBride,Trey McBride,Trey McBride,Trey McBride,trey mcbride,id
+00-0038996,4572680,40102,TE,,Tucker Kraft,Tucker Kraft,Tucker Kraft,Tucker Kraft,tucker kraft,id
+00-0040128,4431459,41799,TE,,Tyler Warren,Tyler Warren,Tyler Warren,Tyler Warren,tyler warren,id
+00-0039890,4597500,40915,WR,,Adonai Mitchell,Adonai Mitchell,Adonai Mitchell,Adonai Mitchell,adonai mitchell,id
+00-0035676,4047646,31883,WR,,A.J. Brown,A.J. Brown,A.J. Brown,A.J. Brown,aj brown,id
+00-0037664,4360078,34008,WR,,Alec Pierce,Alec Pierce,Alec Pierce,Alec Pierce,alec pierce,id
+00-0036963,4374302,33500,WR,,Amon-Ra St. Brown,Amon-Ra St. Brown,Amon-Ra St. Brown,Amon-Ra St. Brown,amon ra st brown,id
+00-0041040,5081432,42693,WR,,Antonio Williams,Antonio Williams,Antonio Williams,Antonio Williams,antonio williams,id
+00-0039893,4432773,40883,WR,,Brian Thomas Jr.,Brian Thomas Jr.,Brian Thomas Jr.,Brian Thomas Jr.,brian thomas,id
+00-0041523,4869645,42697,WR,,Caleb Douglas,Caleb Douglas,Caleb Douglas,Caleb Douglas,caleb douglas,id
+00-0034837,3925357,,WR,,Calvin Ridley,Calvin Ridley,,Calvin Ridley,calvin ridley,id
+00-0041438,4871023,42626,WR,,Carnell Tate,Carnell Tate,Carnell Tate,Carnell Tate,carnell tate,id
+00-0036358,4241389,32687,WR,,CeeDee Lamb,CeeDee Lamb,CeeDee Lamb,CeeDee Lamb,ceedee lamb,id
+00-0033921,3116165,30197,WR,,Chris Godwin,Chris Godwin Jr.,Chris Godwin Jr.,Chris Godwin Jr.,chris godwin,id
+00-0037239,4361370,33966,WR,,Chris Olave,Chris Olave,Chris Olave,Chris Olave,chris olave,id
+00-0038124,4248528,33989,WR,,Christian Watson,Christian Watson,Christian Watson,Christian Watson,christian watson,id
+00-0033908,2977187,,WR,,Cooper Kupp,Cooper Kupp,,Cooper Kupp,cooper kupp,id
+00-0034348,3128429,31010,WR,,Courtland Sutton,Courtland Sutton,Courtland Sutton,Courtland Sutton,courtland sutton,id
+00-0031381,16800,27581,WR,,Davante Adams,Davante Adams,Davante Adams,Davante Adams,davante adams,id
+00-0035719,3126486,31868,WR,,Deebo Samuel,Deebo Samuel Sr.,Deebo Samuel Sr.,Deebo Samuel Sr.,deebo samuel,id
+00-0041037,4832800,42661,WR,,Denzel Boston,Denzel Boston,Denzel Boston,Denzel Boston,denzel boston,id
+00-0039424,4569559,41097,WR,,Devaughn Vele,Devaughn Vele,Devaughn Vele,Devaughn Vele,devaughn vele,id
+00-0036912,4241478,33398,WR,,DeVonta Smith,DeVonta Smith,DeVonta Smith,DeVonta Smith,devonta smith,id
+00-0041035,4710714,,WR,,De'Zhaun Stribling,De'Zhaun Stribling,,De'Zhaun Stribling,dezhaun stribling,id
+00-0034827,3915416,30994,WR,,D.J. Moore,DJ Moore,DJ Moore,DJ Moore,dj moore,id
+00-0035640,4047650,31896,WR,,DK Metcalf,DK Metcalf,DK Metcalf,DK Metcalf,dk metcalf,id
+00-0040785,4384852,42616,WR,,Dohnte Meyers,Dohnte Meyers,Dohnte Meyers,Dohnte Meyers,dohnte meyers,id
+00-0038393,4428850,40201,WR,,Dontayvion Wicks,Dontayvion Wicks,Dontayvion Wicks,Dontayvion Wicks,dontayvion wicks,id
+00-0037238,4426502,33963,WR,,Drake London,Drake London,Drake London,Drake London,drake london,id
+00-0040129,4567750,41804,WR,,Emeka Egbuka,Emeka Egbuka,Emeka Egbuka,Emeka Egbuka,emeka egbuka,id
+00-0037740,4569618,33965,WR,,Garrett Wilson,Garrett Wilson,Garrett Wilson,Garrett Wilson,garrett wilson,id
+00-0037247,4426354,34007,WR,,George Pickens,George Pickens,George Pickens,George Pickens,george pickens,id
+00-0040669,5123663,,WR,,Isaac TeSlaa,Isaac TeSlaa,,Isaac TeSlaa,isaac teslaa,id
+00-0040870,4870847,,WR,,Ja'Kobi Lane,Ja'Kobi Lane,,Ja'Kobi Lane,jakobi lane,id
+00-0034960,3916433,32231,WR,,Jakobi Meyers,Jakobi Meyers,Jakobi Meyers,Jakobi Meyers,jakobi meyers,id
+00-0039491,4695883,41293,WR,,Jalen Coker,Jalen Coker,Jalen Coker,Jalen Coker,jalen coker,id
+00-0039855,4430834,,WR,,Jalen McMillan,Jalen McMillan,,Jalen McMillan,jalen mcmillan,id
+00-0037666,4249417,,WR,,Jalen Tolbert,Jalen Tolbert,,Jalen Tolbert,jalen tolbert,id
+00-0036900,4362628,33393,WR,,Ja'Marr Chase,Ja'Marr Chase,Ja'Marr Chase,Ja'Marr Chase,jamarr chase,id
+00-0037240,4426388,33967,WR,,Jameson Williams,Jameson Williams,Jameson Williams,Jameson Williams,jameson williams,id
+00-0036259,3886598,,WR,,Jauan Jennings,Jauan Jennings,,Jauan Jennings,jauan jennings,id
+00-0038543,4430878,40041,WR,,Jaxon Smith-Njigba,Jaxon Smith-Njigba,Jaxon Smith-Njigba,Jaxon Smith-Njigba,jaxon smith njigba,id
+00-0039146,4362249,40063,WR,,Jayden Reed,Jayden Reed,Jayden Reed,Jayden Reed,jayden reed,id
+00-0036613,4372016,33394,WR,,Jaylen Waddle,Jaylen Waddle,Jaylen Waddle,Jaylen Waddle,jaylen waddle,id
+00-0036407,4241463,,WR,,Jerry Jeudy,Jerry Jeudy,,Jerry Jeudy,jerry jeudy,id
+00-0038994,4429205,40042,WR,,Jordan Addison,Jordan Addison,Jordan Addison,Jordan Addison,jordan addison,id
+00-0041029,4880281,42630,WR,,Jordyn Tyson,Jordyn Tyson,Jordyn Tyson,Jordyn Tyson,jordyn tyson,id
+00-0041100,4879194,,WR,,Josh Cameron,Josh Cameron,,Josh Cameron,josh cameron,id
+00-0038997,4688813,40126,WR,,Josh Downs,Josh Downs,Josh Downs,Josh Downs,josh downs,id
+00-0036322,4262921,32692,WR,,Justin Jefferson,Justin Jefferson,Justin Jefferson,Justin Jefferson,justin jefferson,id
+00-0032464,2973405,29631,WR,,Kalif Raymond,Kalif Raymond,Kalif Raymond,Kalif Raymond,kalif raymond,id
+00-0038608,4429022,,WR,,Kayshon Boutte,Kayshon Boutte,,Kayshon Boutte,kayshon boutte,id
+00-0041547,4870653,42646,WR,,KC Concepcion,KC Concepcion,KC Concepcion Jr.,KC Concepcion,kc concepcion,id
+00-0030279,15818,26699,WR,,Keenan Allen,Keenan Allen,Keenan Allen,Keenan Allen,keenan allen,id
+00-0033307,3045523,,WR,,Kendrick Bourne,Kendrick Bourne,,Kendrick Bourne,kendrick bourne,id
+00-0039901,4635008,40911,WR,,Keon Coleman,Keon Coleman,Keon Coleman,Keon Coleman,keon coleman,id
+00-0037261,4373678,34104,WR,,Khalil Shakir,Khalil Shakir,Khalil Shakir,Khalil Shakir,khalil shakir,id
+00-0039915,4612826,40908,WR,,Ladd McConkey,Ladd McConkey,Ladd McConkey,Ladd McConkey,ladd mcconkey,id
+00-0040735,4685278,41824,WR,,Luther Burden,Luther Burden III,Luther Burden III,Luther Burden III,luther burden,id
+00-0033555,2991662,,WR,,Mack Hollins,Mack Hollins,,Mack Hollins,mack hollins,id
+00-0040867,4870795,42642,WR,,Makai Lemon,Makai Lemon,Makai Lemon,Makai Lemon,makai lemon,id
+00-0041042,4682648,42696,WR,,Malachi Fields,Malachi Fields,Malachi Fields,Malachi Fields,malachi fields,id
+00-0039337,4595348,40899,WR,,Malik Nabers,Malik Nabers,Malik Nabers,Malik Nabers,malik nabers,id
+00-0039880,4569603,41058,WR,,Malik Washington,Malik Washington,Malik Washington,Malik Washington,malik washington,id
+00-0039849,4432708,40893,WR,,Marvin Harrison Jr.,Marvin Harrison Jr.,Marvin Harrison Jr.,Marvin Harrison Jr.,marvin harrison,id
+00-0040667,4701936,41808,WR,,Matthew Golden,Matthew Golden,Matthew Golden,Matthew Golden,matthew golden,id
+00-0036252,4035687,32704,WR,,Michael Pittman,Michael Pittman Jr.,Michael Pittman Jr.,Michael Pittman Jr.,michael pittman,id
+00-0038559,4360761,40121,WR,,Michael Wilson,Michael Wilson,Michael Wilson,Michael Wilson,michael wilson,id
+00-0031408,16737,27535,WR,,Mike Evans,Mike Evans,Mike Evans,Mike Evans,mike evans,id
+00-0036554,4258173,33477,WR,,Nico Collins,Nico Collins,Nico Collins,Nico Collins,nico collins,id
+00-0038606,4432620,40234,WR,,Parker Washington,Parker Washington,Parker Washington,Parker Washington,parker washington,id
+00-0039075,4426515,40168,WR,,Puka Nacua,Puka Nacua,Puka Nacua,Puka Nacua,puka nacua,id
+00-0038544,4429025,40051,WR,,Quentin Johnston,Quentin Johnston,Quentin Johnston,Quentin Johnston,quentin johnston,id
+00-0039067,4428331,40084,WR,,Rashee Rice,Rashee Rice,Rashee Rice,Rashee Rice,rashee rice,id
+00-0037545,4032473,,WR,,Rashid Shaheed,Rashid Shaheed,,Rashid Shaheed,rashid shaheed,id
+00-0036550,4360939,33415,WR,,Rashod Bateman,Rashod Bateman,Rashod Bateman,Rashod Bateman,rashod bateman,id
+00-0039739,4431492,40952,WR,,Roman Wilson,Roman Wilson,Roman Wilson,Roman Wilson,roman wilson,id
+00-0039919,4431299,40901,WR,,Rome Odunze,Rome Odunze,Rome Odunze,Rome Odunze,rome odunze,id
+00-0037816,4361432,34088,WR,,Romeo Doubs,Romeo Doubs,Romeo Doubs,Romeo Doubs,romeo doubs,id
+00-0031588,2976212,28534,WR,,Stefon Diggs,Stefon Diggs,Stefon Diggs,Stefon Diggs,stefon diggs,id
+00-0038977,4366031,40097,WR,,Tank Dell,Tank Dell,Tank Dell,Tank Dell,tank dell,id
+00-0036410,4239993,32703,WR,,Tee Higgins,Tee Higgins,Tee Higgins,Tee Higgins,tee higgins,id
+00-0035659,3121422,31908,WR,,Terry McLaurin,Terry McLaurin,Terry McLaurin,Terry McLaurin,terry mclaurin,id
+00-0040124,4685472,41793,WR,,Tetairoa McMillan,Tetairoa McMillan,Tetairoa McMillan,Tetairoa McMillan,tetairoa mcmillan,id
+00-0040718,4685415,99002,WR,,Travis Hunter,Travis Hunter,Travis Hunter,Travis Hunter,travis hunter,id
+00-0040727,4686612,,WR,,Tre Harris,Tre' Harris,,Tre' Harris,tre harris,id
+00-0038563,4428718,40114,WR,,Tre Tucker,Tre Tucker,Tre Tucker,Tre Tucker,tre tucker,id
+00-0033040,3116406,29399,WR,,Tyreek Hill,,Tyreek Hill,Tyreek Hill,tyreek hill,id
+00-0038117,4569587,33998,WR,,Wan'Dale Robinson,Wan'Dale Robinson,Wan'Dale Robinson,Wan'Dale Robinson,wandale robinson,id
+00-0038618,4686422,,WR,,Xavier Hutchinson,Xavier Hutchinson,,Xavier Hutchinson,xavier hutchinson,id
+00-0039894,4683062,40877,WR,,Xavier Worthy,Xavier Worthy,Xavier Worthy,Xavier Worthy,xavier worthy,id
+00-0039064,4429615,40039,WR,,Zay Flowers,Zay Flowers,Zay Flowers,Zay Flowers,zay flowers,id

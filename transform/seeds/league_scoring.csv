@@ -1,0 +1,4 @@
+league,pass_yd,pass_td,rush_yd,rush_td,rec_yd,reception,rec_td,idp_tackle_solo,idp_tackle_assist,idp_sack,idp_interception,idp_fumble_forced,idp_fumble_recovery,idp_touchdown,idp_safety,idp_pass_defended,idp_blocked_kick,idp_tackle_for_loss,idp_xp_returned,notes
+adn,0.04,6,0.1,6,0.1,0.5,6,1,0.5,2,3,2,2,6,2,1,2,1.5,2,Offense approximate (exact Yahoo rules to add); IDP from the league settings page. Pass TD is 6 in ADN.
+college-forever,0.04,4,0.1,6,0.1,0.5,6,0,0,0,0,0,0,0,0,0,0,0,0,Offense approximate (exact ESPN rules to add); no IDP slots.
+carrboro,0.04,4,0.1,6,0.1,0.5,6,0,0,0,0,0,0,0,0,0,0,0,0,Offense approximate (exact ESPN rules to add); no IDP slots.

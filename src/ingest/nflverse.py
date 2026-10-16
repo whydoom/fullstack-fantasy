@@ -58,9 +58,12 @@ FIRST_SEASON = 2020
 # Dataset name -> loader. The name is also the directory under data/raw/nflverse/,
 # so adding a dataset is a one-line change here plus a dbt source + staging model.
 #
-# Play-by-play (nfl.load_pbp) is deliberately absent: tens of thousands of rows and
-# 300+ columns per season, and nothing in the current model needs snap-level detail.
-# Add it here when something does.
+# The play-level datasets (play-by-play, snap counts, expected fantasy points, FTN
+# charting) feed the per-play fantasy points, top plays, garbage time, usage and
+# luck work. They are landed whole and untouched like everything else -- the
+# filtering to big plays, red-zone plays and rostered players happens in dbt -- but
+# only from FIRST_SEASONS' year on (see below), so the backfill does not pull six
+# seasons of play-by-play nothing reads yet.
 DATASETS: dict[str, Callable[[int], pl.DataFrame]] = {
     # summary_level="week" is the default, but state it: the same function returns
     # season totals under a different argument, and a silent default flip upstream
@@ -69,6 +72,31 @@ DATASETS: dict[str, Callable[[int], pl.DataFrame]] = {
         seasons=[season], summary_level="week"
     ),
     "schedules": lambda season: nfl.load_schedules(seasons=[season]),
+    # One row per play: 372 columns, ~50k rows (~12 MB) a season.
+    "pbp": lambda season: nfl.load_pbp(seasons=[season]),
+    # One row per player per game: offensive / defensive / special-teams snaps and
+    # share (PFR). Who was on the field play by play is not published for current
+    # seasons (load_participation stops at 2025); per-game snap share is.
+    "snap_counts": lambda season: nfl.load_snap_counts(seasons=[season]),
+    # Expected fantasy points from usage ("what the touches were worth"): weekly per
+    # player, and per pass / rush play.
+    "ff_opportunity_weekly": lambda season: nfl.load_ff_opportunity(seasons=[season], stat_type="weekly"),
+    "ff_opportunity_pbp_pass": lambda season: nfl.load_ff_opportunity(seasons=[season], stat_type="pbp_pass"),
+    "ff_opportunity_pbp_rush": lambda season: nfl.load_ff_opportunity(seasons=[season], stat_type="pbp_rush"),
+    # FTN's per-play charting: drops, contested / catchable balls, play action, blitzes.
+    "ftn_charting": lambda season: nfl.load_ftn_charting(seasons=[season]),
+}
+
+# First season to land, per dataset (default FIRST_SEASON). The play-level datasets
+# start at 2026: big and only needed for the current season so far. Moving a year
+# back is a one-number change and the next run backfills it.
+FIRST_SEASONS: dict[str, int] = {
+    "pbp": 2026,
+    "snap_counts": 2026,
+    "ff_opportunity_weekly": 2026,
+    "ff_opportunity_pbp_pass": 2026,
+    "ff_opportunity_pbp_rush": 2026,
+    "ftn_charting": 2026,
 }
 
 
@@ -85,8 +113,9 @@ def current_season() -> int:
     return nfl.get_current_season()
 
 
-def seasons_to_fetch() -> list[int]:
-    return list(range(FIRST_SEASON, current_season() + 1))
+def seasons_to_fetch(dataset: str | None = None) -> list[int]:
+    first = FIRST_SEASONS.get(dataset, FIRST_SEASON) if dataset else FIRST_SEASON
+    return list(range(first, current_season() + 1))
 
 
 def _raw_path(dataset: str, season: int) -> Path:
@@ -149,7 +178,7 @@ def fetch_and_land(dataset: str, season: int) -> Path | None:
 def backfill(datasets: list[str] | None = None) -> None:
     """Land every dataset for every season from FIRST_SEASON through the current one."""
     for dataset in datasets or list(DATASETS):
-        for season in seasons_to_fetch():
+        for season in seasons_to_fetch(dataset):
             existed = _raw_path(dataset, season).exists()
             path = fetch_and_land(dataset, season)
             if path is None:
