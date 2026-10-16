@@ -82,3 +82,9 @@ sources:
         description: One row per rush play with its expected outcomes, 2026 on.
       - name: ftn_charting
         description: One row per charted play (FTN Data), 2026 on; runs about a day behind.
+      - name: rosters_weekly
+        description: One row per player per team per week, with jersey number and ids, 2026 on.
+      - name: injuries
+        description: >
+          One row per player per weekly injury report, 2026 on: primary / secondary
+          injury, practice participation and game status (Out, Doubtful, Questionable).

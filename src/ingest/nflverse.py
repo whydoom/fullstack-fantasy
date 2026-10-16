@@ -85,6 +85,12 @@ DATASETS: dict[str, Callable[[int], pl.DataFrame]] = {
     "ff_opportunity_pbp_rush": lambda season: nfl.load_ff_opportunity(seasons=[season], stat_type="pbp_rush"),
     # FTN's per-play charting: drops, contested / catchable balls, play action, blitzes.
     "ftn_charting": lambda season: nfl.load_ftn_charting(seasons=[season]),
+    # Who was on each team each week, with jersey numbers: the play-by-play names
+    # injured players as TEAM-JERSEY-NAME ("SEA-14-S.Darnold"), and this turns that
+    # into a player id.
+    "rosters_weekly": lambda season: nfl.load_rosters_weekly(seasons=[season]),
+    # The weekly injury reports: body part, practice participation, game status.
+    "injuries": lambda season: nfl.load_injuries(seasons=[season]),
 }
 
 # First season to land, per dataset (default FIRST_SEASON). The play-level datasets
@@ -97,6 +103,8 @@ FIRST_SEASONS: dict[str, int] = {
     "ff_opportunity_pbp_pass": 2026,
     "ff_opportunity_pbp_rush": 2026,
     "ftn_charting": 2026,
+    "rosters_weekly": 2026,
+    "injuries": 2026,
 }
 
 

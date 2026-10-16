@@ -365,6 +365,21 @@ models:
           arguments:
             expression: "other_incompletions >= 0 and catches + drops <= targets"
 
+  - name: fct_player_game_injury
+    description: >
+      One row per player per game in which play stopped for his injury: when (quarter,
+      clock), whether the log says he returned or he is named on a later play, his
+      snap share against his usual one, did_not_return, and the next week's injury
+      report (body part, status).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, player_id]
+    columns:
+      - name: did_not_return
+        tests:
+          - not_null
+
   - name: fct_player_week_usage
     description: >
       One row per player per game: offensive snaps and snap share (PFR), target and
