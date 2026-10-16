@@ -24,6 +24,9 @@ from __future__ import annotations
 # `highlight`: the team abbreviation the site highlights by default.
 # `tiebreak`: how teams level on record are ordered -- "points_for" (the
 # default) or "head_to_head" (their games against each other, then points for).
+# `standings`: "platform" makes the site's current standings mirror the
+# platform's own order (standings_espn.py: ESPN applies divisions and its own
+# tiebreakers); earlier weeks still use `tiebreak`.
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -40,6 +43,7 @@ LEAGUES = {
         "page": "college-forever.html",
         "highlight": "JOHN",
         "tiebreak": "head_to_head",
+        "standings": "platform",
     },
     "carrboro": {
         "platform": "espn",
