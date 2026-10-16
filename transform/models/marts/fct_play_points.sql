@@ -15,7 +15,9 @@
 --   is_vulture       ... from 3 yards or closer (rushing / receiving)
 --   is_big_play      ... from 40+ yards
 --   player_yards     his own yards on the play (rush + receiving, or passing for a
---                    passer)
+--                    passer, or a field goal's distance for its kicker)
+--   kick_points      field goals and extra points, scored per league (a kicker's
+--                    points are only these)
 
 with credits as (
 
@@ -46,7 +48,15 @@ scoring as (
         idp_pass_defended as w_idp_pass_defended,
         idp_blocked_kick as w_idp_blocked_kick,
         idp_safety as w_idp_safety,
-        idp_touchdown as w_idp_touchdown
+        idp_touchdown as w_idp_touchdown,
+        fg_made as w_fg_made,
+        fg_yd as w_fg_yd,
+        fg_40_49 as w_fg_40_49,
+        fg_50_59 as w_fg_50_59,
+        fg_60_plus as w_fg_60_plus,
+        fg_miss as w_fg_miss,
+        xp_made as w_xp_made,
+        xp_miss as w_xp_miss
     from {{ ref('league_scoring') }}
 
 ),
@@ -74,7 +84,15 @@ scored as (
             + coalesce(idp_pass_defended, 0) * scoring.w_idp_pass_defended
             + coalesce(idp_blocked_kick, 0) * scoring.w_idp_blocked_kick
             + coalesce(idp_safety, 0) * scoring.w_idp_safety
-            + coalesce(idp_touchdown, 0) * scoring.w_idp_touchdown       as defense_points
+            + coalesce(idp_touchdown, 0) * scoring.w_idp_touchdown       as defense_points,
+        coalesce(fg_made, 0) * scoring.w_fg_made
+            + coalesce(fg_yd, 0) * scoring.w_fg_yd
+            + coalesce(fg_40_49, 0) * scoring.w_fg_40_49
+            + coalesce(fg_50_59, 0) * scoring.w_fg_50_59
+            + coalesce(fg_60_plus, 0) * scoring.w_fg_60_plus
+            + coalesce(fg_miss, 0) * scoring.w_fg_miss
+            + coalesce(xp_made, 0) * scoring.w_xp_made
+            + coalesce(xp_miss, 0) * scoring.w_xp_miss                   as kick_points
     from credits
     cross join scoring
 
@@ -88,12 +106,14 @@ select
     season,
     week,
     season_type,
-    round(offense_points + defense_points, 2)                        as points,
+    round(offense_points + defense_points + kick_points, 2)          as points,
     round(offense_points, 2)                                         as offense_points,
     round(defense_points, 2)                                         as defense_points,
+    round(kick_points, 2)                                            as kick_points,
     coalesce(rush_yd, 0) + coalesce(rec_yd, 0)                       as scrimmage_yards,
     coalesce(pass_yd, 0)                                             as pass_yards,
-    case when coalesce(pass_yd, 0) > 0 and coalesce(rush_yd, 0) + coalesce(rec_yd, 0) = 0
+    case when coalesce(fg_made, 0) + coalesce(fg_miss, 0) > 0 then kick_distance
+         when coalesce(pass_yd, 0) > 0 and coalesce(rush_yd, 0) + coalesce(rec_yd, 0) = 0
          then coalesce(pass_yd, 0) else coalesce(rush_yd, 0) + coalesce(rec_yd, 0) end
                                                                      as player_yards,
     coalesce(rush_td, 0) + coalesce(rec_td, 0) + coalesce(return_td, 0)
@@ -131,9 +151,9 @@ select
     target, carry, pass_yd, pass_td, rush_yd, rush_td, rec_yd, reception, rec_td, return_td,
     idp_tackle_solo, idp_tackle_assist, idp_tackle_for_loss, idp_sack, idp_interception,
     idp_fumble_forced, idp_fumble_recovery, idp_pass_defended, idp_blocked_kick, idp_safety,
-    idp_touchdown
+    idp_touchdown, fg_made, fg_yd, fg_40_49, fg_50_59, fg_60_plus, fg_miss, xp_made, xp_miss
 from scored
-where offense_points + defense_points <> 0
+where offense_points + defense_points + kick_points <> 0
    or coalesce(rush_td, 0) + coalesce(rec_td, 0) + coalesce(return_td, 0) + coalesce(idp_touchdown, 0) > 0
    or (play_type in ('pass', 'run') and yards_to_endzone <= 20
        and coalesce(target, 0) + coalesce(carry, 0) > 0)
