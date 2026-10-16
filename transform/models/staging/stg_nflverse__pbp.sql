@@ -79,6 +79,11 @@ renamed as (
         receiver_player_name,
         rusher_player_id,
         rusher_player_name,
+        -- a lateral after the catch / handoff: the second ball carrier and his yards
+        lateral_receiver_player_id,
+        lateral_receiving_yards,
+        lateral_rusher_player_id,
+        lateral_rushing_yards,
         kicker_player_id,
         kickoff_returner_player_id,
         punt_returner_player_id,

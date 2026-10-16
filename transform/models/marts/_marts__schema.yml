@@ -316,3 +316,38 @@ models:
     columns:
       - name: expected_wins
         tests: [not_null]
+
+  - name: fct_play_player
+    description: >
+      One row per player per play (deleted plays dropped): every fantasy stat he is
+      credited with on it -- passing / receiving / rushing yards and TDs, receptions,
+      return TDs, and the defensive stats (tackles, assists, TFL, sacks incl. halves,
+      INT, forced fumbles, defensive recoveries, passes defended, blocked kicks,
+      safeties, defensive TDs). Raw counts; fct_play_points scores them.
+    columns:
+      - name: player_id
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, play_id, player_id]
+
+  - name: fct_play_points
+    description: >
+      One row per player per play per league: the play's fantasy points under that
+      league's scoring (seed league_scoring), with garbage-time, red-zone, big-play,
+      vulture and defensive-TD flags. Rows worth nothing are dropped except
+      touchdowns and red-zone touches (kept for red-zone share).
+    columns:
+      - name: league
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('league_scoring')
+                field: league
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league, game_id, play_id, player_id]
