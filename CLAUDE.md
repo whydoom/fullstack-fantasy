@@ -238,6 +238,26 @@ Hand-maintained lookup tables, loaded by `dbt seed`:
 - `nfl_venues.csv` — stadiums outside the US and their region (Europe /
   International), for `dim_game`'s `region` and `is_primetime`.
 
+Adding or removing a seed **column** needs `dbt seed --full-refresh` once locally
+(dbt-duckdb otherwise loads into the old table shape and fails to "sniff" the CSV);
+CI always builds a fresh warehouse.
+
+### Plays to fantasy (`fct_play_player`, `fct_play_points`, `plays_export.py`)
+
+`fct_play_player` credits every player on every play with his fantasy stats
+(targets, carries, yards, TDs incl. laterals and return TDs, IDP credits);
+`fct_play_points` scores them per league with garbage-time / red-zone / big-play /
+vulture / defensive-TD flags. `tests/assert_play_points_match_box_scores.sql` keeps
+the play level honest: summed per week it must equal nflverse's box score under the
+same weights, in every league.
+
+Rosters are joined outside dbt, because ESPN rosters live in the processed JSON, not
+the warehouse: `python plays_export.py` writes `data/processed/{league}/
+{platform}_plays.json` -- each rostered player's top 10 plays and week summary
+(garbage-time points, red-zone share), team plays (stacks, bench plays, the week's
+biggest), and the defensive-TD cases. Order after a refresh: nflverse ingest + load,
+`dbt build`, `build_player_names.py` (new players), `plays_export.py`.
+
 ### Landing format is per-source: parquet here, JSON for Yahoo
 
 Yahoo returns JSON, so Yahoo lands JSON — re-encoding it would destroy the payload the
