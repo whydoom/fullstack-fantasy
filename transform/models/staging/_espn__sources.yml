@@ -1,0 +1,18 @@
+version: 2
+
+# ESPN data that lives in the warehouse. Most ESPN processing writes JSON directly
+# (espn_*.py); only what dbt needs to score across leagues is loaded here.
+#
+# Local only: raw ESPN files never leave this machine (league data, cookies), so CI
+# has no raw_espn schema and excludes "source:raw_espn+" -- same as raw_yahoo.
+
+sources:
+  - name: raw_espn
+    description: ESPN data loaded untouched (src/load/espn_projections.py).
+    schema: raw_espn
+    tables:
+      - name: player_projections
+        description: >
+          ESPN's weekly pre-game projection per player, one row per projected stat
+          (stat_id, value), flattened from the landed player pools; each player-week
+          from the first ESPN league whose pool has it.

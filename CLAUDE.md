@@ -256,7 +256,25 @@ the warehouse: `python plays_export.py` writes `data/processed/{league}/
 {platform}_plays.json` -- each rostered player's top 10 plays and week summary
 (garbage-time points, red-zone share), team plays (stacks, bench plays, the week's
 biggest), and the defensive-TD cases. Order after a refresh: nflverse ingest + load,
-`dbt build`, `build_player_names.py` (new players), `plays_export.py`.
+`python -m src.load.espn_projections`, `dbt build`, `build_player_names.py` (new
+players), `plays_export.py`.
+
+### Usage, expected points, projections
+
+- `fct_player_week_targets` — targets, catches, drops (FTN), interceptions, other
+  incompletions; `charted_targets` says whether FTN (a day behind) has the week yet.
+- `fct_player_week_usage` — snap share (PFR snap counts via the crosswalk's
+  `pfr_id`), target and carry share, `is_workhorse` (70%+ of snaps).
+- `fct_player_week_expected` — per league: points scored vs points the usage was
+  worth (nflverse ffopportunity, scored with the league's weights).
+- `fct_player_week_projection` — per league: ESPN's pre-game projection re-scored
+  with the league's weights, Yahoo leagues included. Loaded by
+  `src/load/espn_projections.py` from the landed ESPN pools into `raw_espn`
+  (stat ids decoded in `stg_espn__player_projections`). Like `raw_yahoo`, raw ESPN
+  data is local only, so CI excludes `source:raw_espn+`. QBs read ~1.5-2 points
+  above ESPN's own totals until `league_scoring` has an interception column.
+
+`plays_export.py` puts all four on each rostered player-week.
 
 ### Landing format is per-source: parquet here, JSON for Yahoo
 

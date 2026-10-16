@@ -133,3 +133,13 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [game_id, play_id]
+
+  - name: stg_espn__player_projections
+    description: >
+      One row per player per week: ESPN's pre-game projection as named stat
+      components, with the nflverse player_id (crosswalk espn_id, else the
+      player_names seed). Kickers and defences have no player_id.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [season, week, espn_id]

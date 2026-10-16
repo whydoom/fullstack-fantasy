@@ -351,3 +351,44 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [league, game_id, play_id, player_id]
+
+  - name: fct_player_week_targets
+    description: >
+      One row per player per game he was targeted: targets, catches, drops (FTN),
+      interceptions and other incompletions, with FTN's catchable / contested counts
+      and how many targets FTN has charted (it runs about a day behind).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, player_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "other_incompletions >= 0 and catches + drops <= targets"
+
+  - name: fct_player_week_usage
+    description: >
+      One row per player per game: offensive snaps and snap share (PFR), target and
+      carry share of his team's, and is_workhorse (70%+ of the team's snaps).
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [game_id, player_id]
+
+  - name: fct_player_week_expected
+    description: >
+      One row per player per game per league: points scored and points his usage
+      was expected to score (nflverse ffopportunity), both under the league's
+      scoring, and the difference.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league, game_id, player_id]
+
+  - name: fct_player_week_projection
+    description: >
+      One row per player per week per league: ESPN's pre-game projection scored
+      under the league's rules (offence only for now). The matchup trend's baseline.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league, season, week, player_id]
