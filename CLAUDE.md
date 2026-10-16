@@ -276,6 +276,17 @@ players), `plays_export.py`.
 
 `plays_export.py` puts all four on each rostered player-week.
 
+### Matchup trend and Monday night (`matchups_export.py`)
+
+`python matchups_export.py` writes `{platform}_matchup_trend.json` per league: each
+game's spread (starters' projections: ESPN for QB/RB/WR/TE, each K/DST/IDP's own
+earlier average), then slate by slate in kickoff order each team's points against
+projection and the projected final margin after the slate, each team's best and
+worst slate, and the state going into Monday night (points, who is left, margin,
+what Monday produced, whether the lead changed hands). Actual points are the
+platform's official ones; every team's slates sum exactly to its final. Run after
+`plays_export.py`.
+
 ### Landing format is per-source: parquet here, JSON for Yahoo
 
 Yahoo returns JSON, so Yahoo lands JSON — re-encoding it would destroy the payload the
