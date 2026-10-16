@@ -25,7 +25,12 @@
 --               disjoint in the data); tackles for loss; sacks (half sacks 0.5);
 --               interceptions; forced fumbles; fumble recoveries by the defence;
 --               passes defended; blocked kicks; safeties; a defensive TD (an
---               interception or fumble return scored by a defender)
+--               interception or fumble return scored by a defender). Not for
+--               the kicker on his own kick: his coverage tackle on a kickoff is
+--               not fantasy points (the platforms' kicker scoring leaves it out)
+--   kicker      a made field goal (and its distance, and which distance band),
+--               a missed or blocked one; a good extra point, a failed or
+--               blocked one
 
 with plays as (
 
@@ -134,6 +139,38 @@ credits as (
         and touchdown_player_id is not null
         and touchdown_player_id not in (coalesce(punt_returner_player_id, ''), coalesce(kickoff_returner_player_id, ''))
 
+    -- kicking
+    union all
+    select game_id, play_id, kicker_player_id, 'fg_made', 1
+      from plays where kicker_player_id is not null and field_goal_result = 'made'
+    union all
+    select game_id, play_id, kicker_player_id, 'fg_yd', kick_distance
+      from plays where kicker_player_id is not null and field_goal_result = 'made'
+    union all
+    select game_id, play_id, kicker_player_id,
+           case when kick_distance >= 60 then 'fg_60_plus' when kick_distance >= 50 then 'fg_50_59'
+                else 'fg_40_49' end, 1
+      from plays where kicker_player_id is not null and field_goal_result = 'made' and kick_distance >= 40
+    union all
+    select game_id, play_id, kicker_player_id, 'fg_miss', 1
+      from plays where kicker_player_id is not null and field_goal_result in ('missed', 'blocked')
+    union all
+    select game_id, play_id, kicker_player_id, 'xp_made', 1
+      from plays where kicker_player_id is not null and extra_point_result = 'good'
+    union all
+    select game_id, play_id, kicker_player_id, 'xp_miss', 1
+      from plays where kicker_player_id is not null and extra_point_result in ('failed', 'blocked')
+
+),
+
+-- the kicker's own coverage tackle on his kick is not a fantasy stat
+kept as (
+
+    select credits.*
+    from credits
+    join plays using (game_id, play_id)
+    where not (credits.stat like 'idp_%' and credits.player_id = plays.kicker_player_id)
+
 ),
 
 per_player as (
@@ -162,8 +199,16 @@ per_player as (
         sum(value) filter (where stat = 'idp_pass_defended')    as idp_pass_defended,
         sum(value) filter (where stat = 'idp_blocked_kick')     as idp_blocked_kick,
         sum(value) filter (where stat = 'idp_safety')           as idp_safety,
-        sum(value) filter (where stat = 'idp_touchdown')        as idp_touchdown
-    from credits
+        sum(value) filter (where stat = 'idp_touchdown')        as idp_touchdown,
+        sum(value) filter (where stat = 'fg_made')              as fg_made,
+        sum(value) filter (where stat = 'fg_yd')                as fg_yd,
+        sum(value) filter (where stat = 'fg_40_49')             as fg_40_49,
+        sum(value) filter (where stat = 'fg_50_59')             as fg_50_59,
+        sum(value) filter (where stat = 'fg_60_plus')           as fg_60_plus,
+        sum(value) filter (where stat = 'fg_miss')              as fg_miss,
+        sum(value) filter (where stat = 'xp_made')              as xp_made,
+        sum(value) filter (where stat = 'xp_miss')              as xp_miss
+    from kept
     group by game_id, play_id, player_id
 
 )
@@ -194,6 +239,8 @@ select
     plays.rusher_player_id,
     plays.interception_player_id,
     plays.forced_fumble_player_1_player_id,
+    plays.kicker_player_id,
+    plays.kick_distance,
     plays.fumble_recovery_1_player_id,
     plays.touchdown_player_id,
     plays.epa,
