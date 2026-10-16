@@ -110,7 +110,12 @@ def main():
     for g, name, pos in stats.iter_rows():
         if g and name:
             by_stat_key.setdefault(match_key(name), []).append({"gsis_id": g, "nflverse_name": name, "pos": pos})
-    nick_to_abbr = {match_key(n): a for a, n in nfl.load_teams().select("team_abbr", "team_nick").iter_rows()}
+    # current franchises only: nflverse's team list keeps relocated ones (OAK, STL, SD)
+    sched = pl.read_parquet(ROOT / "data" / "raw" / "nflverse" / "schedules" / f"{max_season()}.parquet",
+                            columns=["home_team"])
+    current = set(sched["home_team"].to_list())
+    nick_to_abbr = {match_key(n): a for a, n in nfl.load_teams().select("team_abbr", "team_nick").iter_rows()
+                    if a in current}
 
     def by_name(name, pos):
         """A unique nflverse player for this name: same position (any defensive
