@@ -22,6 +22,8 @@ from __future__ import annotations
 # `median_game`: the league also scores every team against the week's median, so
 # a team's standings record is its head-to-head record plus its vs-median record.
 # `highlight`: the team abbreviation the site highlights by default.
+# `tiebreak`: how teams level on record are ordered -- "points_for" (the
+# default) or "head_to_head" (their games against each other, then points for).
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -37,6 +39,7 @@ LEAGUES = {
         "label": "College Forever",
         "page": "college-forever.html",
         "highlight": "JOHN",
+        "tiebreak": "head_to_head",
     },
     "carrboro": {
         "platform": "espn",
