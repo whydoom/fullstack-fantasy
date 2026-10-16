@@ -16,7 +16,9 @@ data/processed/{league}/{platform}_plays.json:
      "defensive_tds": {week: [case, ...]}}
 
   player-week   one per player on a roster that week: name, position, status
-                (start / bench), points, garbage-time points, red-zone carries /
+                (start / bench), points, an in-game injury (quarter, clock,
+                did_not_return, snap share vs usual, next week's report; null if
+                play never stopped for him), garbage-time points, red-zone carries /
                 targets / touch share of his NFL team's red-zone opportunities, and
                 his TOP_N plays by points (each: description, quarter, points,
                 yards, TD, big play, vulture, garbage time, red zone, slot).
@@ -126,6 +128,12 @@ def main(league):
     targets = by_player_week("""
         select player_id, week, targets, catches, drops, intercepted, other_incompletions, charted_targets
         from main.fct_player_week_targets where season = ? and season_type = 'REG'""", [season])
+    # hurt during the game (only when play stopped for it), and whether he came back
+    injury = by_player_week("""
+        select player_id, week, injured_quarter as quarter, injured_clock as clock, did_not_return,
+               round(snap_share, 2) as snap_share, round(usual_snap_share, 2) as usual_snap_share,
+               next_report_injury, next_report_status
+        from main.fct_player_game_injury where season = ? and season_type = 'REG'""", [season])
     usage = by_player_week("""
         select player_id, week, offense_snaps, snap_share, target_share, carry_share, is_workhorse
         from main.fct_player_week_usage where season = ? and season_type = 'REG'""", [season])
@@ -157,6 +165,9 @@ def main(league):
         for p in week_plays:
             if p["player_id"] in on_roster:
                 mine[p["player_id"]].append(p)
+        for gsis in on_roster:          # hurt before he did anything worth a point
+            if (gsis, wk) in injury:
+                mine[gsis]
         teams = defaultdict(list)
         for gsis, ps in mine.items():
             tid, status, name, pos = on_roster[gsis]
@@ -178,6 +189,7 @@ def main(league):
                 "big_plays": sum(1 for p in ps if p["is_big_play"]),
                 "targets": targets.get((gsis, wk)),
                 "usage": usage.get((gsis, wk)),
+                "injury": injury.get((gsis, wk)),
                 "expected": expected.get((gsis, wk)),
                 "projected_points": (projection.get((gsis, wk)) or {}).get("projected_points"),
                 "vultures": sum(1 for p in ps if p["is_vulture"]),

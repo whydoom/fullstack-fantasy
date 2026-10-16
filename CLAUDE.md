@@ -266,6 +266,17 @@ biggest), and the defensive-TD cases. Order after a refresh: nflverse ingest + l
 `python -m src.load.espn_projections`, `dbt build`, `build_player_names.py` (new
 players), `plays_export.py`.
 
+### In-game injuries (`fct_player_game_injury`)
+
+The official play-by-play logs an injury that stops play ("SEA-14-S.Darnold was
+injured during the play") and a return ("** Injury Update: LAC-99-J.Caldwell has
+returned to the game"). `fct_player_game_injury` finds the player through team +
+jersey + week (`rosters_weekly`), and calls it `did_not_return` when there is no
+return note, he is never named on a later play, and his snap share fell well below
+his usual one. The next week's injury report (`injuries`) adds the body part and
+status. `plays_export.py` carries it on each player-week as `injury`. Only stoppages
+are logged: a player who limps off between plays is not caught.
+
 ### Usage, expected points, projections
 
 - `fct_player_week_targets` — targets, catches, drops (FTN), interceptions, other
