@@ -383,3 +383,12 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [league, game_id, player_id]
+
+  - name: fct_player_week_projection
+    description: >
+      One row per player per week per league: ESPN's pre-game projection scored
+      under the league's rules (offence only for now). The matchup trend's baseline.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [league, season, week, player_id]

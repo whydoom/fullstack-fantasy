@@ -43,4 +43,4 @@ jobs:
       # `source:raw_yahoo+` is the Yahoo source and everything downstream of it, so a
       # new Yahoo model is excluded the moment it refs that lineage — no tag to forget.
       - name: dbt build
-        run: dbt build --project-dir transform --profiles-dir transform --exclude "source:raw_yahoo+"
+        run: dbt build --project-dir transform --profiles-dir transform --exclude "source:raw_yahoo+" "source:raw_espn+"

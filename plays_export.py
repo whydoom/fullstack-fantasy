@@ -114,6 +114,32 @@ def main(league):
         where league = ? and season = ? and season_type = 'REG' and is_red_zone
         group by 1, 2""", [league, season]).fetchall()}
 
+    def by_player_week(sql, params):
+        """{(gsis, week): row dict} for a per-player-week query."""
+        cur = con.execute(sql, params)
+        names = [d[0] for d in cur.description]
+        return {(r[0], str(r[1])): dict(zip(names[2:], r[2:])) for r in cur.fetchall()}
+
+    # Phase 3: what became of his targets, his share of the offence, his points
+    # against what his touches were worth, and his pre-game projection. Nothing
+    # here exists for a defence, kicker or a week FTN has not charted yet.
+    targets = by_player_week("""
+        select player_id, week, targets, catches, drops, intercepted, other_incompletions, charted_targets
+        from main.fct_player_week_targets where season = ? and season_type = 'REG'""", [season])
+    usage = by_player_week("""
+        select player_id, week, offense_snaps, snap_share, target_share, carry_share, is_workhorse
+        from main.fct_player_week_usage where season = ? and season_type = 'REG'""", [season])
+    expected = by_player_week("""
+        select player_id, week, round(actual_points, 2) as actual, round(expected_points, 2) as expected,
+               points_over_expected as over_expected
+        from main.fct_player_week_expected where league = ? and season = ?""", [league, season])
+    try:
+        projection = by_player_week("""
+            select player_id, week, projected_points
+            from main.fct_player_week_projection where league = ? and season = ?""", [league, season])
+    except duckdb.CatalogException:
+        projection = {}          # no ESPN projections loaded on this machine
+
     def play_view(p):
         return {"game_id": p["game_id"], "play_id": int(p["play_id"]), "quarter": int(p["quarter"] or 0),
                 "desc": p["play_description"], "points": round(float(p["points"]), 2),
@@ -150,6 +176,10 @@ def main(league):
                              "team_opportunities": int(rz_opps),
                              "share": round(rz_touch / rz_opps, 3) if rz_opps else None},
                 "big_plays": sum(1 for p in ps if p["is_big_play"]),
+                "targets": targets.get((gsis, wk)),
+                "usage": usage.get((gsis, wk)),
+                "expected": expected.get((gsis, wk)),
+                "projected_points": (projection.get((gsis, wk)) or {}).get("projected_points"),
                 "vultures": sum(1 for p in ps if p["is_vulture"]),
                 "top_plays": [play_view(p) for p in ranked[:TOP_N] if float(p["points"]) != 0 or p["scored_td"]],
             })
