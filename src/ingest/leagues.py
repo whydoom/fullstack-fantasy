@@ -31,7 +31,8 @@ from __future__ import annotations
 # around the site's team picker (ordered by standings). Each is a label and a
 # range of places, `last` counting from the bottom (1 = last place), or `most_pf`
 # for the team with the most points for wherever it stands. Ranges nest: a
-# first-round bye sits inside the playoffs.
+# first-round bye sits inside the playoffs. `tone` fills those teams' buttons:
+# "green", "yellow" or "red" (a team takes its narrowest zone's tone).
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -40,10 +41,10 @@ LEAGUES = {
         "page": "adn.html",
         "highlight": "JUST",
         "zones": [
-            {"label": "1st-round bye", "from": 1, "to": 1},
-            {"label": "Playoffs", "from": 1, "to": 7},
+            {"label": "1st-round bye", "from": 1, "to": 1, "tone": "green"},
+            {"label": "Playoffs", "from": 1, "to": 7, "tone": "yellow"},
             {"label": "Most PF", "most_pf": True},
-            {"label": "Loser punishment", "last": 1},
+            {"label": "Loser punishment", "last": 1, "tone": "red"},
         ],
     },
     "college-forever": {
@@ -57,8 +58,8 @@ LEAGUES = {
         "standings": "platform",
         # ESPN seeds the two division winners first, so places 1-2 are the byes
         "zones": [
-            {"label": "1st-round bye", "from": 1, "to": 2},
-            {"label": "Playoffs", "from": 1, "to": 6},
+            {"label": "1st-round bye", "from": 1, "to": 2, "tone": "green"},
+            {"label": "Playoffs", "from": 1, "to": 6, "tone": "yellow"},
         ],
     },
     "carrboro": {
