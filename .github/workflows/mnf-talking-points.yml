@@ -97,7 +97,13 @@ jobs:
         run: |
           python -m src.ingest.discover > /dev/null
           python -m src.ingest.yahoo_season "$(python -c 'from src.ingest.discover import latest_league_key as k; from src.ingest.leagues import LEAGUES; print(k(LEAGUES["adn"]["yahoo_league_name"]))')" > /dev/null
-          python -m src.ingest.nflverse > /dev/null
+          # nflverse downloads from GitHub releases, which now and then answer 502:
+          # retry (files already landed this run are kept, so a retry resumes)
+          for attempt in 1 2 3; do
+            if python -m src.ingest.nflverse > /dev/null; then break; fi
+            if [ "$attempt" = 3 ]; then echo "nflverse download failed 3 times"; exit 1; fi
+            echo "nflverse download failed (attempt $attempt); retrying in 60s"; sleep 60
+          done
           python -m src.load.duckdb_raw > /dev/null
           python -m src.load.yahoo_raw > /dev/null
 
