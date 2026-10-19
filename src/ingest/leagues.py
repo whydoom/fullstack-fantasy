@@ -27,6 +27,11 @@ from __future__ import annotations
 # `standings`: "platform" makes the site's current standings mirror the
 # platform's own order (standings_espn.py: ESPN applies divisions and its own
 # tiebreakers); earlier weeks still use `tiebreak`.
+# `zones`: what a place in the standings is playing for, drawn as outlined boxes
+# around the site's team picker (ordered by standings). Each is a label and a
+# range of places, `last` counting from the bottom (1 = last place), or `most_pf`
+# for the team with the most points for wherever it stands. Ranges nest: a
+# first-round bye sits inside the playoffs.
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -34,6 +39,12 @@ LEAGUES = {
         "label": "ADN",
         "page": "adn.html",
         "highlight": "JUST",
+        "zones": [
+            {"label": "1st-round bye", "from": 1, "to": 1},
+            {"label": "Playoffs", "from": 1, "to": 7},
+            {"label": "Most PF", "most_pf": True},
+            {"label": "Loser punishment", "last": 1},
+        ],
     },
     "college-forever": {
         "platform": "espn",
@@ -44,6 +55,11 @@ LEAGUES = {
         "highlight": "JOHN",
         "tiebreak": "head_to_head",
         "standings": "platform",
+        # ESPN seeds the two division winners first, so places 1-2 are the byes
+        "zones": [
+            {"label": "1st-round bye", "from": 1, "to": 2},
+            {"label": "Playoffs", "from": 1, "to": 6},
+        ],
     },
     "carrboro": {
         "platform": "espn",
