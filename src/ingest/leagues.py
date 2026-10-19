@@ -32,7 +32,8 @@ from __future__ import annotations
 # range of places, `last` counting from the bottom (1 = last place), or `most_pf`
 # for the team with the most points for wherever it stands. Ranges nest: a
 # first-round bye sits inside the playoffs. `tone` fills those teams' buttons:
-# "green", "yellow" or "red" (a team takes its narrowest zone's tone).
+# "green", "yellow", "red" or "blue" (a team takes its narrowest zone's tone; a
+# most_pf tone wins over any other, the team keeping its place).
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -43,7 +44,7 @@ LEAGUES = {
         "zones": [
             {"label": "1st-round bye", "from": 1, "to": 1, "tone": "green"},
             {"label": "Playoffs", "from": 1, "to": 7, "tone": "yellow"},
-            {"label": "Most PF", "most_pf": True},
+            {"label": "Most PF", "most_pf": True, "tone": "blue"},
             {"label": "Loser punishment", "last": 1, "tone": "red"},
         ],
     },
