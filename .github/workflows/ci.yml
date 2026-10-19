@@ -31,9 +31,10 @@ jobs:
       # This is what makes the dbt tests meaningful in CI rather than vacuous: grain
       # and relationship tests run against the actual dataset on every PR.
       #
-      # The Yahoo half is different and stays out: it needs OAuth credentials this
-      # public repo must never hold, so no Yahoo model can be built here. When Yahoo
-      # models land, gate them out of the CI selection rather than adding secrets.
+      # The Yahoo half stays out of CI: it needs OAuth credentials, which pull
+      # requests must never get. Those credentials are Actions secrets used only by
+      # the scheduled MNF talking-points workflow (mnf-talking-points.yml) -- never
+      # by this one, and never by a pull request from a fork.
       - name: Ingest nflverse (no credentials required)
         run: python -m src.ingest.nflverse
 

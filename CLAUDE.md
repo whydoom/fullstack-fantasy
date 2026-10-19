@@ -266,6 +266,23 @@ biggest), and the defensive-TD cases. Order after a refresh: nflverse ingest + l
 `python -m src.load.espn_projections`, `dbt build`, `build_player_names.py` (new
 players), `plays_export.py`.
 
+### Monday night talking points (`.github/workflows/mnf-talking-points.yml`)
+
+Every Monday at 11:00 Eastern, GitHub Actions emails ADN's commissioner the state of
+every game going into Monday night, from justin@jimoody.com. It pulls ADN's week in
+progress from Yahoo and the plays from nflverse, builds the warehouse, and exports
+with `FFF_PROCESSED_DIR=data/preview` -- `yahoo_site_export.py --live` (the week in
+progress, its games' score so far), `build_player_names.py` (this week's pickups),
+`byes.py`, `plays_export.py`, `matchups_export.py` -- so it never touches
+data/processed or the site. jimoody.com's `recap.preview` writes the email;
+`src/notify/send_email.py` sends it. Run it by hand from the Actions tab ("Run
+workflow"; "only me" sends the test to SMTP_USER alone).
+
+The repo is public: the Yahoo token, the Gmail app password, the site-repo token and
+the recipients are Actions secrets, readable only by workflows of people with write
+access, and no step prints league data (public logs). The same commands run locally
+for a test, with FFF_PROCESSED_DIR pointed at data/preview.
+
 ### In-game injuries (`fct_player_game_injury`)
 
 The official play-by-play logs an injury that stops play ("SEA-14-S.Darnold was

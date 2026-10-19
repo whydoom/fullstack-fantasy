@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -51,7 +52,7 @@ PROJECTED_POSITIONS = {"QB", "RB", "WR", "TE"}
 
 
 def processed(league):
-    return ROOT / "data" / "processed" / league
+    return Path(os.environ.get("FFF_PROCESSED_DIR") or ROOT / "data" / "processed") / league
 
 
 def main(league):

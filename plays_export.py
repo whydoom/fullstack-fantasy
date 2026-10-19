@@ -42,6 +42,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -57,7 +58,7 @@ MIN_TEAM_PLAY = 8.0
 
 
 def processed(league):
-    return ROOT / "data" / "processed" / league
+    return Path(os.environ.get("FFF_PROCESSED_DIR") or ROOT / "data" / "processed") / league
 
 
 def load_names():
