@@ -1,0 +1,133 @@
+# Monday night talking points for ADN's commissioner: every game going into Monday
+# night, emailed from justin@jimoody.com at 11:00 Eastern every Monday of the season.
+#
+# Pulls ADN's week in progress from Yahoo and Sunday's plays from nflverse, builds
+# the warehouse, exports the week to data/preview (never data/processed, never the
+# site), runs jimoody.com's recap.preview on it and emails the result.
+#
+# This repo is public, so its run logs are public: no step prints league data. The
+# credentials are Actions secrets -- encrypted, never shown in logs, never given to
+# pull requests from forks; only people with write access to this repo can run a
+# workflow that reads them. Secrets used:
+#
+#   YAHOO_CLIENT_ID, YAHOO_CLIENT_SECRET   the Yahoo developer app
+#   YAHOO_TOKEN_JSON                       contents of .secrets/token.json (holds the refresh token)
+#   SITE_REPO_TOKEN                        read-only token for the private whydoom/jimoody.com
+#   SMTP_USER, SMTP_PASSWORD               justin@jimoody.com and its Google app password
+#   MAIL_TO                                the commissioner (comma-separated for more)
+#   MAIL_CC                                optional: copies, e.g. justin@jimoody.com
+name: MNF talking points
+
+on:
+  # GitHub's clock is UTC: 11:00 Eastern is 15:00 UTC in daylight time and 16:00 UTC
+  # in standard time. Both fire; the first step lets only the 11:00 Eastern one run.
+  # Scheduled runs can start 10-20 minutes late.
+  schedule:
+    - cron: "0 15 * * 1"
+    - cron: "0 16 * * 1"
+  workflow_dispatch:
+    inputs:
+      only_me:
+        description: "Send only to SMTP_USER (a test), not the commissioner"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mnf-talking-points
+  cancel-in-progress: false
+
+jobs:
+  talking-points:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FFF_PROCESSED_DIR: ${{ github.workspace }}/data/preview
+      FFF_PIPELINE_DIR: ${{ github.workspace }}
+      YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+      YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+      PYTHONUTF8: "1"
+    steps:
+      - name: Only at 11:00 Eastern
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(TZ=America/New_York date +%H)" != "11" ]; then
+            echo "Not 11:00 in New York; the other cron runs this week."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.go == 'true'
+
+      - name: Check out jimoody.com (the recap engine)
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: whydoom/jimoody.com
+          token: ${{ secrets.SITE_REPO_TOKEN }}
+          path: site
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          pip install -q -r requirements.txt
+          dbt deps --project-dir transform --profiles-dir transform > /dev/null
+
+      - name: Yahoo token
+        if: steps.gate.outputs.go == 'true'
+        env:
+          YAHOO_TOKEN_JSON: ${{ secrets.YAHOO_TOKEN_JSON }}
+        run: |
+          mkdir -p .secrets
+          printf '%s' "$YAHOO_TOKEN_JSON" > .secrets/token.json
+          chmod 600 .secrets/token.json
+
+      # Every data step keeps its output out of the log (league data); errors still show.
+      - name: Pull ADN from Yahoo and the plays from nflverse
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python -m src.ingest.discover > /dev/null
+          python -m src.ingest.yahoo_season "$(python -c 'from src.ingest.discover import latest_league_key as k; from src.ingest.leagues import LEAGUES; print(k(LEAGUES["adn"]["yahoo_league_name"]))')" > /dev/null
+          python -m src.ingest.nflverse > /dev/null
+          python -m src.load.duckdb_raw > /dev/null
+          python -m src.load.yahoo_raw > /dev/null
+
+      - name: Build the warehouse
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          dbt seed --project-dir transform --profiles-dir transform --quiet
+          dbt run --project-dir transform --profiles-dir transform --exclude "source:raw_espn+" --quiet
+
+      - name: Export the week in progress
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python yahoo_site_export.py --league adn --live > /dev/null
+          python build_player_names.py > /dev/null
+          python byes.py --league adn > /dev/null
+          python plays_export.py --league adn > /dev/null
+          python matchups_export.py --league adn > /dev/null
+
+      - name: Talking points
+        if: steps.gate.outputs.go == 'true'
+        working-directory: site
+        run: python -m recap.preview adn --out "${{ github.workspace }}/out"
+
+      - name: Email
+        if: steps.gate.outputs.go == 'true'
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_TO: ${{ (github.event_name == 'workflow_dispatch' && inputs.only_me) && secrets.SMTP_USER || secrets.MAIL_TO }}
+          MAIL_CC: ${{ (github.event_name == 'workflow_dispatch' && inputs.only_me) && '' || secrets.MAIL_CC }}
+        run: |
+          python -m src.notify.send_email --subject-file out/subject.txt \
+            --html out/talking_points.html --text out/talking_points.txt

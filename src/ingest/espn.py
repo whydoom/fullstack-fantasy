@@ -28,7 +28,10 @@ load_dotenv()
 BASE = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = PROJECT_ROOT / "data" / "raw" / "espn"
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+# FFF_PROCESSED_DIR moves every export's output (and what later steps read) to
+# another folder: the Monday talking-points run writes its in-progress week to
+# data/preview so it never touches the site's data/processed.
+PROCESSED_DIR = Path(os.environ.get("FFF_PROCESSED_DIR") or PROJECT_ROOT / "data" / "processed")
 
 
 def raw_dir(league_key: str) -> Path:

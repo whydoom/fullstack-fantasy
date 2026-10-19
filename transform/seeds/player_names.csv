@@ -8,6 +8,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 ,-16027,100027,DST,TB,,Buccaneers D/ST,Buccaneers,Buccaneers,buccaneers,
 ,-16024,100024,DST,LAC,,Chargers D/ST,Chargers,Chargers,chargers,
 ,-16012,100012,DST,KC,,Chiefs D/ST,Chiefs,Chiefs,chiefs,
+,,100011,DST,IND,,,Colts,Colts,colts,
 ,-16028,,DST,WAS,,Commanders D/ST,,Commanders,commanders,
 ,-16006,100006,DST,DAL,,Cowboys D/ST,Cowboys,Cowboys,cowboys,
 ,-16021,100021,DST,PHI,,Eagles D/ST,Eagles,Eagles,eagles,
@@ -26,6 +27,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 ,-16010,,DST,TEN,,Titans D/ST,,Titans,titans,
 ,-16016,100016,DST,MIN,,Vikings D/ST,Vikings,Vikings,vikings,
 00-0031898,,28716,IDP,,Alex Singleton,,Alex Singleton,Alex Singleton,alex singleton,id
+00-0041509,,42627,IDP,,Arvell Reese,,Arvell Reese,Arvell Reese,arvell reese,name
 00-0035687,,31921,IDP,,Bobby Okereke,,Bobby Okereke,Bobby Okereke,bobby okereke,id
 00-0040579,,41818,IDP,,Carson Schwesinger,,Carson Schwesinger,Carson Schwesinger,carson schwesinger,name
 00-0037244,,33982,IDP,,Devin Lloyd,,Devin Lloyd,Devin Lloyd,devin lloyd,id
@@ -41,9 +43,11 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0038038,,33969,IDP,,Kyle Hamilton,,Kyle Hamilton,Kyle Hamilton,kyle hamilton,id
 00-0033868,,30114,IDP,,Myles Garrett,,Myles Garrett,Myles Garrett,myles garrett,id
 00-0037615,,34039,IDP,,Nakobe Dean,,Nakobe Dean,Nakobe Dean,nakobe dean,id
+00-0037587,,34291,IDP,,Nate Landman,,Nate Landman,Nate Landman,nate landman,id
 00-0036621,,33446,IDP,,Nick Bolton,,Nick Bolton,Nick Bolton,nick bolton,id
 00-0034874,,30978,IDP,,Roquan Smith,,Roquan Smith,Roquan Smith,roquan smith,id
 00-0033886,,30143,IDP,,T.J. Watt,,T.J. Watt,T.J. Watt,tj watt,id
+00-0034673,,30986,IDP,,Tremaine Edmunds,,Tremaine Edmunds,Tremaine Edmunds,tremaine edmunds,id
 00-0039108,,40031,IDP,,Will Anderson,,Will Anderson Jr.,Will Anderson Jr.,will anderson,id
 00-0037692,3953687,40819,K,,Brandon Aubrey,Brandon Aubrey,Brandon Aubrey,Brandon Aubrey,brandon aubrey,id
 00-0031203,,28227,K,,Cairo Santos,,Cairo Santos,Cairo Santos,cairo santos,id
@@ -57,8 +61,9 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0039172,4689936,40835,K,,Jake Bates,Jake Bates,Jake Bates,Jake Bates,jake bates,id
 00-0031492,2473037,28378,K,,Jason Myers,Jason Myers,Jason Myers,Jason Myers,jason myers,id
 00-0032726,2971573,29792,K,,Ka'imi Fairbairn,Ka'imi Fairbairn,Ka'imi Fairbairn,Ka'imi Fairbairn,kaimi fairbairn,id
-00-0035269,4249087,,K,,Matt Gay,Matt Gay,,Matt Gay,matt gay,id
+00-0035269,4249087,31977,K,,Matt Gay,Matt Gay,Matt Gay,Matt Gay,matt gay,id
 00-0039576,4571557,41499,K,,Spencer Shrader,Spencer Shrader,Spencer Shrader,Spencer Shrader,spencer shrader,id
+00-0036162,,32858,K,,Tyler Bass,,Tyler Bass,Tyler Bass,tyler bass,id
 00-0040074,4697745,41988,K,,Tyler Loop,Tyler Loop,Tyler Loop,Tyler Loop,tyler loop,id
 00-0032569,2985659,,K,,Wil Lutz,Wil Lutz,,Wil Lutz,wil lutz,id
 00-0039404,4567104,41093,K,,Will Reichard,Will Reichard,Will Reichard,Will Reichard,will reichard,id
@@ -82,6 +87,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0036264,4036378,32696,QB,,Jordan Love,Jordan Love,Jordan Love,Jordan Love,jordan love,id
 00-0034857,3918298,30977,QB,,Josh Allen,Josh Allen,Josh Allen,Josh Allen,josh allen,id
 00-0036355,4038941,32676,QB,,Justin Herbert,Justin Herbert,Justin Herbert,Justin Herbert,justin herbert,id
+00-0029604,,25812,QB,,Kirk Cousins,,Kirk Cousins,Kirk Cousins,kirk cousins,id
 00-0035228,3917315,31833,QB,,Kyler Murray,Kyler Murray,Kyler Murray,Kyler Murray,kyler murray,id
 00-0034796,3916387,31002,QB,,Lamar Jackson,Lamar Jackson,Lamar Jackson,Lamar Jackson,lamar jackson,id
 00-0038128,4242512,,QB,,Malik Willis,Malik Willis,,Malik Willis,malik willis,id
@@ -109,6 +115,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0038611,4362619,40231,RB,,Chris Rodriguez,Chris Rodriguez Jr.,Chris Rodriguez Jr.,Chris Rodriguez Jr.,chris rodriguez,id
 00-0033280,3117251,30121,RB,,Christian McCaffrey,Christian McCaffrey,Christian McCaffrey,Christian McCaffrey,christian mccaffrey,id
 00-0036555,4241416,33514,RB,,Chuba Hubbard,Chuba Hubbard,Chuba Hubbard,Chuba Hubbard,chuba hubbard,id
+00-0037258,,34063,RB,,Dameon Pierce,,Dameon Pierce,Dameon Pierce,dameon pierce,id
 00-0036275,4259545,32705,RB,,D'Andre Swift,D'Andre Swift,D'Andre Swift,D'Andre Swift,dandre swift,id
 00-0035685,4035538,31905,RB,,David Montgomery,David Montgomery,David Montgomery,David Montgomery,david montgomery,id
 00-0032764,3043078,29279,RB,,Derrick Henry,Derrick Henry,Derrick Henry,Derrick Henry,derrick henry,id
@@ -144,6 +151,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0038551,4599739,40108,RB,,Kendre Miller,Kendre Miller,Kendre Miller,Kendre Miller,kendre miller,id
 00-0038134,4567048,33996,RB,,Kenneth Walker III,Kenneth Walker III,Kenneth Walker III,Kenneth Walker III,kenneth walker,id
 00-0036919,4371733,33538,RB,,Kenneth Gainwell,Kenny Gainwell,Kenny Gainwell,Kenny Gainwell,kenny gainwell,id
+00-0039391,,41052,RB,,Kimani Vidal,,Kimani Vidal,Kimani Vidal,kimani vidal,id
 00-0040236,4608686,42025,RB,,Kyle Monangai,Kyle Monangai,Kyle Monangai,Kyle Monangai,kyle monangai,id
 00-0037840,4430737,34120,RB,,Kyren Williams,Kyren Williams,Kyren Williams,Kyren Williams,kyren williams,id
 00-0040238,4911851,,RB,,LeQuint Allen,LeQuint Allen Jr.,,LeQuint Allen Jr.,lequint allen,id
@@ -172,7 +180,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0040583,4429059,41902,RB,,Woody Marks,Woody Marks,Woody Marks,Woody Marks,woody marks,id
 00-0039165,4426385,40075,RB,,Zach Charbonnet,Zach Charbonnet,Zach Charbonnet,Zach Charbonnet,zach charbonnet,id
 00-0039793,4576297,,TE,,AJ Barner,AJ Barner,,AJ Barner,aj barner,id
-00-0038935,4430539,,TE,,Brenton Strange,Brenton Strange,,Brenton Strange,brenton strange,id
+00-0038935,4430539,40078,TE,,Brenton Strange,Brenton Strange,Brenton Strange,Brenton Strange,brenton strange,id
 00-0039338,4432665,40878,TE,,Brock Bowers,Brock Bowers,Brock Bowers,Brock Bowers,brock bowers,id
 00-0037809,,34099,TE,,Chigoziem Okonkwo,,Chig Okonkwo,Chig Okonkwo,chig okonkwo,id
 00-0040126,4723086,41795,TE,,Colston Loveland,Colston Loveland,Colston Loveland,Colston Loveland,colston loveland,id
@@ -193,6 +201,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0034829,3116164,31012,TE,,Mike Gesicki,Mike Gesicki,Mike Gesicki,Mike Gesicki,mike gesicki,id
 00-0035644,4036131,31852,TE,,Noah Fant,Noah Fant,Noah Fant,Noah Fant,noah fant,id
 00-0040189,4595342,,TE,,Oronde Gadsden,Oronde Gadsden,,Oronde Gadsden,oronde gadsden,id
+00-0036894,,33443,TE,,Pat Freiermuth,,Pat Freiermuth,Pat Freiermuth,pat freiermuth,id
 00-0039065,4430027,40064,TE,,Sam LaPorta,Sam LaPorta,Sam LaPorta,Sam LaPorta,sam laporta,id
 00-0040737,4570037,41831,TE,,Terrance Ferguson,Terrance Ferguson,Terrance Ferguson,Terrance Ferguson,terrance ferguson,id
 00-0035229,4036133,31840,TE,,T.J. Hockenson,T.J. Hockenson,T.J. Hockenson,T.J. Hockenson,tj hockenson,id
@@ -229,6 +238,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0040129,4567750,41804,WR,,Emeka Egbuka,Emeka Egbuka,Emeka Egbuka,Emeka Egbuka,emeka egbuka,id
 00-0037740,4569618,33965,WR,,Garrett Wilson,Garrett Wilson,Garrett Wilson,Garrett Wilson,garrett wilson,id
 00-0037247,4426354,34007,WR,,George Pickens,George Pickens,George Pickens,George Pickens,george pickens,id
+00-0041489,,42669,WR,,Germie Bernard,,Germie Bernard,Germie Bernard,germie bernard,name
 00-0040669,5123663,,WR,,Isaac TeSlaa,Isaac TeSlaa,,Isaac TeSlaa,isaac teslaa,id
 00-0040870,4870847,,WR,,Ja'Kobi Lane,Ja'Kobi Lane,,Ja'Kobi Lane,jakobi lane,id
 00-0034960,3916433,32231,WR,,Jakobi Meyers,Jakobi Meyers,Jakobi Meyers,Jakobi Meyers,jakobi meyers,id
@@ -251,7 +261,7 @@ gsis_id,espn_id,yahoo_id,position,team,nflverse_name,espn_name,yahoo_name,displa
 00-0038608,4429022,,WR,,Kayshon Boutte,Kayshon Boutte,,Kayshon Boutte,kayshon boutte,id
 00-0041547,4870653,42646,WR,,KC Concepcion,KC Concepcion,KC Concepcion Jr.,KC Concepcion,kc concepcion,id
 00-0030279,15818,26699,WR,,Keenan Allen,Keenan Allen,Keenan Allen,Keenan Allen,keenan allen,id
-00-0033307,3045523,,WR,,Kendrick Bourne,Kendrick Bourne,,Kendrick Bourne,kendrick bourne,id
+00-0033307,3045523,30551,WR,,Kendrick Bourne,Kendrick Bourne,Kendrick Bourne,Kendrick Bourne,kendrick bourne,id
 00-0039901,4635008,40911,WR,,Keon Coleman,Keon Coleman,Keon Coleman,Keon Coleman,keon coleman,id
 00-0037261,4373678,34104,WR,,Khalil Shakir,Khalil Shakir,Khalil Shakir,Khalil Shakir,khalil shakir,id
 00-0039915,4612826,40908,WR,,Ladd McConkey,Ladd McConkey,Ladd McConkey,Ladd McConkey,ladd mcconkey,id

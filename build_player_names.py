@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 from pathlib import Path
 
@@ -77,15 +78,21 @@ def max_season():
 def rostered():
     """{(platform, platform id): (name, position)} for every player on any league grid."""
     out = {}
-    for key, cfg in LEAGUES.items():
-        path = ROOT / "data" / "processed" / key / f"{cfg['platform']}_team_weeks.json"
-        if not path.exists():
-            continue
-        tw = json.loads(path.read_text(encoding="utf-8"))
-        for ps in tw["grid"].values():
-            for p in ps:
-                pid = str(p["id"]).split(".p.")[-1]       # Yahoo ids arrive as 470.p.33389
-                out[(cfg["platform"], pid)] = (p["name"], p["pos"])
+    # the site's exports, and an export folder FFF_PROCESSED_DIR points at (the
+    # Monday talking points' week in progress, with this week's new pickups)
+    folders = [ROOT / "data" / "processed"]
+    if os.environ.get("FFF_PROCESSED_DIR"):
+        folders.append(Path(os.environ["FFF_PROCESSED_DIR"]))
+    for folder in folders:
+        for key, cfg in LEAGUES.items():
+            path = folder / key / f"{cfg['platform']}_team_weeks.json"
+            if not path.exists():
+                continue
+            tw = json.loads(path.read_text(encoding="utf-8"))
+            for ps in tw["grid"].values():
+                for p in ps:
+                    pid = str(p["id"]).split(".p.")[-1]       # Yahoo ids arrive as 470.p.33389
+                    out[(cfg["platform"], pid)] = (p["name"], p["pos"])
     return out
 
 

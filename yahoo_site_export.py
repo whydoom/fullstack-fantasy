@@ -23,7 +23,10 @@ The best-lineup calculation is espn_team_weeks.optimal_score, imported rather th
 copied, so both platforms' "left on the bench" numbers come from one algorithm.
 
 Only FINAL weeks are exported. A week still in progress would show half-played
-lineups as points "left on the bench".
+lineups as points "left on the bench". `--live` adds the week in progress too, for
+the Monday talking points (never for the site): its games carry the score so far
+and "live": true in the luck file's weekly rows, with a provisional result (who
+leads) and no expected-win luck yet.
 
 Season-to-date player totals (the leaders' Season view, the grid's Season column)
 come from Yahoo's season stats, which include any week in progress -- Yahoo offers
@@ -37,8 +40,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from collections import defaultdict
+from pathlib import Path
 
 import duckdb
 from zoneinfo import ZoneInfo
@@ -49,7 +54,7 @@ from src.ingest.leagues import LEAGUES, keys, selected
 from src.load.yahoo_raw import WAREHOUSE_PATH
 
 PROJECT_ROOT = WAREHOUSE_PATH.parents[1]
-PROCESSED = PROJECT_ROOT / "data" / "processed"
+PROCESSED = Path(os.environ.get("FFF_PROCESSED_DIR") or PROJECT_ROOT / "data" / "processed")
 
 # Yahoo label -> the site's label. Anything not listed passes through unchanged.
 LABEL = {"DEF": "DST", "W/R/T": "FLEX", "D": "IDP"}
@@ -103,7 +108,7 @@ def rows(con, sql: str, *params) -> list[dict]:
     return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
-def export(league: str) -> None:
+def export(league: str, live_week: bool = False) -> None:
     cfg = LEAGUES[league]
     lk = resolve_league_key(cfg["yahoo_league_name"])
     con = duckdb.connect(str(WAREHOUSE_PATH), read_only=True)
@@ -125,7 +130,10 @@ def export(league: str) -> None:
     print(f"{league} ({lk}): season {season}, final weeks {weeks}, {len(teams)} teams")
     live = [r["week"] for r in rows(con, """select distinct week from stg_yahoo__matchup_teams
                                             where league_key = ? and matchup_status = 'midevent'""", lk)]
-    if live:
+    if live and live_week:
+        weeks = sorted(set(weeks) | {live[0]})
+        print(f"  --live: week {live[0]} (in progress) included")
+    elif live:
         print(f"  WARNING: week {live[0]} is in progress. Season totals include its points "
               f"so far, so Season cells will not equal the sum of weeks {weeks[0]}-{weeks[-1]}. "
               "Re-export between Monday night and Thursday kickoff for a consistent page.")
@@ -311,6 +319,17 @@ def export(league: str) -> None:
             "opp": float(r["opponent_points"]),
             "rank": 1 + r["allplay_losses"], "result": r["result"],
             "luck": round(won - float(r["expected_wins"]), 2)})
+    if live_week and live:
+        # the week in progress: the score so far, who leads, and its rank so far
+        cur = rows(con, """select team_id, team_points, opponent_points from fct_matchup
+                           where league_key = ? and week = ?""", lk, live[0])
+        pts = {r["team_id"]: float(r["team_points"] or 0) for r in cur}
+        for r in cur:
+            p, o = float(r["team_points"] or 0), float(r["opponent_points"] or 0)
+            weekly[r["team_id"]].append({
+                "week": live[0], "pts": p, "opp": o,
+                "rank": 1 + sum(1 for v in pts.values() if v > p + 1e-9),
+                "result": "W" if p > o else "L" if p < o else "T", "luck": 0.0, "live": True})
     for row in luck:
         row["weekly"] = weekly[row["team_id"]]
     luck.sort(key=lambda r: -r["ev"])
@@ -351,8 +370,11 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--league", choices=keys("yahoo"),
                     help="Yahoo league key from src/ingest/leagues.py (default: all)")
-    for league in selected(ap.parse_args().league, platform="yahoo"):
-        export(league)
+    ap.add_argument("--live", action="store_true",
+                    help="also export the week in progress (the Monday talking points; never the site)")
+    a = ap.parse_args()
+    for league in selected(a.league, platform="yahoo"):
+        export(league, live_week=a.live)
 
 
 if __name__ == "__main__":
