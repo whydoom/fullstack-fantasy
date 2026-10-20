@@ -1,0 +1,241 @@
+# The Tuesday refresh, in the cloud: every league's final week, onto jimoody.com as a
+# pull request, at 8:00 Eastern every Tuesday of the season. No PC needs to be on.
+#
+# Pulls ADN from Yahoo, College Forever and Carrboro from ESPN and the plays from
+# nflverse, builds the warehouse, runs every export, then in a checkout of
+# jimoody.com copies the data into fixtures/ (refresh_fixtures.py), re-renders the
+# pages and opens a pull request "Week N refresh". Merging it publishes the site
+# (and the GroupMe congrats follows within the hour); the merge stays a person's.
+#
+# Emails justin@jimoody.com either way: the PR link when it is ready, the run link
+# if any step fails.
+#
+# This repo is public, so its run logs are public: no step prints league data. The
+# credentials are Actions secrets -- encrypted, never shown in logs, never given to
+# pull requests from forks. Secrets used:
+#
+#   YAHOO_CLIENT_ID, YAHOO_CLIENT_SECRET   the Yahoo developer app
+#   YAHOO_TOKEN_JSON                       contents of .secrets/token.json
+#   ESPN_S2_CF, ESPN_SWID_CF               College Forever's ESPN cookies (as in .env)
+#   ESPN_S2_FL, ESPN_SWID_FL               Carrboro's ESPN cookies (as in .env)
+#   SITE_REPO_TOKEN                        whydoom/jimoody.com: Contents and Pull requests read/write
+#   SMTP_USER, SMTP_PASSWORD               justin@jimoody.com and its Google app password
+name: Tuesday refresh
+
+on:
+  # GitHub's clock is UTC: 8:00 Eastern is 12:00 UTC in daylight time and 13:00 UTC
+  # in standard time. Both fire; the first step lets only the 8:00 Eastern one run.
+  # Scheduled runs can start 10-20 minutes late.
+  schedule:
+    - cron: "0 12 * * 2"
+    - cron: "0 13 * * 2"
+  workflow_dispatch:
+    inputs:
+      open_pr:
+        description: "Open the pull request on jimoody.com (off: build and check only)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuesday-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      FFF_PIPELINE_DIR: ${{ github.workspace }}
+      YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+      YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+      ESPN_S2_CF: ${{ secrets.ESPN_S2_CF }}
+      ESPN_SWID_CF: ${{ secrets.ESPN_SWID_CF }}
+      ESPN_S2_FL: ${{ secrets.ESPN_S2_FL }}
+      ESPN_SWID_FL: ${{ secrets.ESPN_SWID_FL }}
+      PYTHONUTF8: "1"
+    steps:
+      - name: Only at 8:00 Eastern
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(TZ=America/New_York date +%H)" != "08" ]; then
+            echo "Not 8:00 in New York; the other cron runs this week."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.go == 'true'
+
+      - name: Check out jimoody.com
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: whydoom/jimoody.com
+          token: ${{ secrets.SITE_REPO_TOKEN }}
+          path: site
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          pip install -q -r requirements.txt
+          dbt deps --project-dir transform --profiles-dir transform > /dev/null
+
+      - name: Yahoo token
+        if: steps.gate.outputs.go == 'true'
+        env:
+          YAHOO_TOKEN_JSON: ${{ secrets.YAHOO_TOKEN_JSON }}
+        run: |
+          mkdir -p .secrets
+          printf '%s' "$YAHOO_TOKEN_JSON" > .secrets/token.json
+          chmod 600 .secrets/token.json
+
+      # Every data step keeps its output out of the log (league data); errors still show.
+      - name: Pull ADN from Yahoo and the plays from nflverse
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python -m src.ingest.discover > /dev/null
+          python -m src.ingest.yahoo_season "$(python -c 'from src.ingest.discover import latest_league_key as k; from src.ingest.leagues import LEAGUES; print(k(LEAGUES["adn"]["yahoo_league_name"]))')" > /dev/null
+          # nflverse downloads from GitHub releases, which now and then answer 502:
+          # retry (files already landed this run are kept, so a retry resumes)
+          for attempt in 1 2 3; do
+            if python -m src.ingest.nflverse > /dev/null; then break; fi
+            if [ "$attempt" = 3 ]; then echo "nflverse download failed 3 times"; exit 1; fi
+            echo "nflverse download failed (attempt $attempt); retrying in 60s"; sleep 60
+          done
+          python -m src.load.duckdb_raw > /dev/null
+          python -m src.load.yahoo_raw > /dev/null
+
+      # The exports ask nflverse whether each player played (src/played.py), so the
+      # nflverse and Yahoo models are built before the ESPN pull. ESPN's projections
+      # come from the player pools that pull lands, so the full build follows it.
+      - name: Build the warehouse (before ESPN)
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          dbt seed --project-dir transform --profiles-dir transform --quiet
+          dbt run --project-dir transform --profiles-dir transform --exclude "source:raw_espn+" --quiet
+
+      - name: Pull College Forever and Carrboro from ESPN
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python espn_team_weeks.py > /dev/null
+          python espn_leaders.py > /dev/null
+          python espn_luck.py > /dev/null
+          python standings_espn.py > /dev/null
+          python claims_espn.py > /dev/null
+          python pickups_espn.py > /dev/null
+          python faab_carrboro.py > /dev/null
+          python -m src.load.espn_projections > /dev/null
+
+      - name: Build the warehouse (everything, with tests)
+        if: steps.gate.outputs.go == 'true'
+        run: dbt build --project-dir transform --profiles-dir transform --quiet
+
+      - name: Export every league
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python yahoo_site_export.py > /dev/null
+          python faab_adn.py > /dev/null
+          # this week's pickups into the player list, then the two exports that
+          # ask nflverse about them once more
+          python build_player_names.py > /dev/null
+          python yahoo_site_export.py > /dev/null
+          python espn_team_weeks.py > /dev/null
+          python byes.py > /dev/null
+          python plays_export.py > /dev/null
+          python matchups_export.py > /dev/null
+
+      - name: Render jimoody.com
+        if: steps.gate.outputs.go == 'true'
+        working-directory: site
+        run: |
+          python refresh_fixtures.py
+          # render and check exactly as the site's own CI does: from fixtures/
+          FFF_DATA=fixtures python render_all.py > /dev/null
+          FFF_DATA=fixtures python -m recap.all --every --out "$RUNNER_TEMP/recap" > /dev/null
+          git status --short -- fixtures public | sed 's/^/  /'
+
+      - name: Which week
+        id: week
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          week=$(python -m src.notify.groupme_congrats --site site --league adn --latest-week)
+          echo "week=$week" >> "$GITHUB_OUTPUT"
+          echo "branch=refresh-$(date +%Y)-w$week" >> "$GITHUB_OUTPUT"
+          if [ -z "$(git -C site status --porcelain -- fixtures public)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Week $week: nothing changed since the site's last update."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull request on jimoody.com
+        id: pr
+        if: steps.gate.outputs.go == 'true' && steps.week.outputs.changed == 'true' && (github.event_name == 'schedule' || inputs.open_pr)
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
+          WEEK: ${{ steps.week.outputs.week }}
+          BRANCH: ${{ steps.week.outputs.branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name "whydoom"
+          git config user.email "whydoom@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add fixtures public
+          git commit -q -m "Week $WEEK refresh: every league"
+          # a re-run replaces the branch; its pull request picks up the new commit
+          git push -q -f origin "$BRANCH"
+          url=$(gh pr list --head "$BRANCH" --state open --json url -q '.[0].url')
+          if [ -z "$url" ]; then
+            printf '%s\n' \
+              "Week $WEEK's data for every league (fixtures/) and the re-rendered pages (public/)." \
+              "" \
+              "Opened by the Tuesday refresh: $RUN_URL" \
+              "" \
+              "Merging publishes the site; the GroupMe congrats follows within the hour." > "$RUNNER_TEMP/body.md"
+            url=$(gh pr create --base master --head "$BRANCH" --title "Week $WEEK refresh" --body-file "$RUNNER_TEMP/body.md")
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Email -- ready to merge
+        if: steps.pr.outputs.url != ''
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          WEEK: ${{ steps.week.outputs.week }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          python - <<'PY'
+          import os
+          from src.notify.send_email import send
+          week, url = os.environ["WEEK"], os.environ["PR_URL"]
+          send(f"[FFF] Week {week} refresh is ready to merge",
+               f"Every league is refreshed for week {week}. Look over the preview and merge:\n\n{url}\n\n"
+               "Merging publishes jimoody.com; the GroupMe congrats follows within the hour.\n",
+               to=[os.environ["SMTP_USER"]])
+          PY
+
+      - name: Email -- the refresh failed
+        if: failure()
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import os
+          from src.notify.send_email import send
+          send("[FFF] Tuesday refresh failed",
+               "The Tuesday refresh stopped partway. The run shows which step and why:\n\n"
+               f"{os.environ['RUN_URL']}\n\nFix it, then Actions > Tuesday refresh > Run workflow.\n",
+               to=[os.environ["SMTP_USER"]])
+          PY
