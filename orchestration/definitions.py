@@ -86,6 +86,7 @@ from src.ingest.nflverse import (
 )
 from src.load import duckdb_raw
 
+from orchestration.alerts import email_on_run_failure
 from orchestration.yahoo_assets import (
     adn_weekly_refresh,
     adn_weekly_schedule,
@@ -259,6 +260,7 @@ defs = Definitions(
     ],
     jobs=[adn_weekly_refresh],
     schedules=[adn_weekly_schedule],
+    sensors=[email_on_run_failure],
     resources={
         "dbt": DbtCliResource(project_dir=dbt_project),
     },

@@ -283,6 +283,15 @@ the recipients are Actions secrets, readable only by workflows of people with wr
 access, and no step prints league data (public logs). The same commands run locally
 for a test, with FFF_PROCESSED_DIR pointed at data/preview.
 
+### Failure emails (`orchestration/alerts.py`)
+
+A Dagster run-failure sensor (`email_on_run_failure`, on by default) emails whenever a
+run fails -- the Tuesday `adn_weekly_refresh` included: the job, the step that failed,
+the first lines of the error and the run id. It sends through `src/notify/send_email.py`
+with SMTP_USER / SMTP_PASSWORD (and optional ALERT_TO) from `.env`; the Dagster daemon
+(`dagster dev`) must be running for it, as for the schedule. GitHub Actions emails the
+repo owner on its own when a scheduled workflow fails.
+
 ### GroupMe congrats (`.github/workflows/groupme-congrats.yml`)
 
 Tuesdays, hourly, a workflow reads jimoody.com's published data (a checkout of the
