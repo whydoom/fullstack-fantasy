@@ -14,7 +14,7 @@ name: GroupMe congrats
 
 on:
   schedule:
-    - cron: "0 13-23 * * 2"       # Tuesdays, hourly, 9am-7pm Eastern (8am-6pm in standard time)
+    - cron: "23 13-23 * * 2"      # Tuesdays, hourly at :23, 9am-7pm Eastern (8am-6pm in standard time)
   workflow_dispatch:
     inputs:
       force:
