@@ -354,8 +354,25 @@ def export(league: str, live_week: bool = False) -> None:
             "source": "waivers" if r["source_type"] == "waivers" else "free agent",
             "dropped": r["dropped"],
             "when": r["transacted_at"].astimezone(_ET).strftime("%b %d %H:%M")})
+    # ---- trades: every player who moved between two teams, one entry per trade
+    trades = {}
+    for r in rows(con, """
+        select t.transaction_key, t.week, t.transacted_at, t.from_team_id, t.to_team_id,
+               p.player_name, p.display_position
+        from fct_transaction t
+        join stg_yahoo__transaction_players p using (transaction_key, player_key)
+        where t.league_key = ? and t.leg_type = 'trade'
+        order by t.transacted_at""", lk):
+        tr = trades.setdefault(r["transaction_key"], {
+            "week": r["week"], "when": r["transacted_at"].astimezone(_ET).strftime("%b %d %H:%M"),
+            "teams": set(), "players": []})
+        tr["teams"] |= {str(r["from_team_id"]), str(r["to_team_id"])}
+        tr["players"].append({"player": r["player_name"], "pos": label(position_group(r["display_position"])),
+                              "from": str(r["from_team_id"]), "to": str(r["to_team_id"])})
+    trade_list = [dict(t, teams=sorted(t["teams"])) for t in trades.values()]
     (out_dir / "yahoo_pickups.json").write_text(json.dumps(
-        {"league": league, "season": season, "teams": picks}, indent=2), encoding="utf-8")
+        {"league": league, "season": season, "teams": picks, "trades": trade_list}, indent=2),
+        encoding="utf-8")
     (out_dir / "yahoo_luck.json").write_text(json.dumps(
         dict(header, n_teams=len(teams), close_margin=CLOSE_MARGIN, rows=luck),
         indent=2), encoding="utf-8")
