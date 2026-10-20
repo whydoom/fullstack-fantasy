@@ -1,5 +1,5 @@
 # The Tuesday refresh, in the cloud: every league's final week, onto jimoody.com as a
-# pull request, at 8:00 Eastern every Tuesday of the season. No PC needs to be on.
+# pull request, at 11:00 Eastern every Tuesday of the season. No PC needs to be on.
 #
 # Pulls ADN from Yahoo, College Forever and Carrboro from ESPN and the plays from
 # nflverse, builds the warehouse, runs every export, then in a checkout of
@@ -23,12 +23,12 @@
 name: Tuesday refresh
 
 on:
-  # GitHub's clock is UTC: 8:00 Eastern is 12:00 UTC in daylight time and 13:00 UTC
-  # in standard time. Both fire; the first step lets only the 8:00 Eastern one run.
+  # GitHub's clock is UTC: 11:00 Eastern is 15:00 UTC in daylight time and 16:00 UTC
+  # in standard time. Both fire; the first step lets only the 11:00 Eastern one run.
   # Scheduled runs can start 10-20 minutes late.
   schedule:
-    - cron: "0 12 * * 2"
-    - cron: "0 13 * * 2"
+    - cron: "0 15 * * 2"
+    - cron: "0 16 * * 2"
   workflow_dispatch:
     inputs:
       open_pr:
@@ -57,11 +57,15 @@ jobs:
       ESPN_SWID_FL: ${{ secrets.ESPN_SWID_FL }}
       PYTHONUTF8: "1"
     steps:
-      - name: Only at 8:00 Eastern
+      - name: Only at 11:00 Eastern
         id: gate
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(TZ=America/New_York date +%H)" != "08" ]; then
-            echo "Not 8:00 in New York; the other cron runs this week."
+          # Which cron fired, not the clock: a scheduled run can start late, so the
+          # 15:00 UTC one is for daylight time (UTC-4) and the 16:00 one for standard.
+          offset=$(TZ=America/New_York date +%z)
+          want="0 16 * * 2"; [ "$offset" = "-0400" ] && want="0 15 * * 2"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" != "$want" ]; then
+            echo "This cron is for the other half of the year; the other one runs this week."
             echo "go=false" >> "$GITHUB_OUTPUT"
           else
             echo "go=true" >> "$GITHUB_OUTPUT"

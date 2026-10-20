@@ -285,7 +285,7 @@ for a test, with FFF_PROCESSED_DIR pointed at data/preview.
 
 ### The Tuesday refresh (`.github/workflows/tuesday-refresh.yml`)
 
-Every Tuesday at 8:00 Eastern, GitHub Actions refreshes every league with no PC on:
+Every Tuesday at 11:00 Eastern, GitHub Actions refreshes every league with no PC on:
 Yahoo (ADN), ESPN (College Forever, Carrboro; cookies ESPN_S2_* / ESPN_SWID_* as
 secrets) and nflverse, a fresh warehouse (`dbt run` without raw_espn, the ESPN pull,
 `espn_projections`, then a full `dbt build`), every export, then in a jimoody.com
