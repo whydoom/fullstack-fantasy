@@ -4,11 +4,14 @@
 # Pulls ADN from Yahoo, College Forever and Carrboro from ESPN and the plays from
 # nflverse, builds the warehouse, runs every export, then in a checkout of
 # jimoody.com copies the data into fixtures/ (refresh_fixtures.py), re-renders the
-# pages and opens a pull request "Week N refresh". Merging it publishes the site
-# (and the GroupMe congrats follows within the hour); the merge stays a person's.
+# pages and opens a pull request "Week N refresh". Once the site's own checks pass
+# on it (every league renders, the recap runs for every week, the preview builds)
+# it merges itself: Cloudflare publishes the site and the GroupMe congrats follows
+# within the hour. This automated data PR is the one exception to "a person merges
+# to master" (jimoody.com's CLAUDE.md); a failing check leaves it open, unmerged.
 #
-# Emails justin@jimoody.com either way: the PR link when it is ready, the run link
-# if any step fails.
+# Emails justin@jimoody.com either way: "week N is live", or the run link if any
+# step or check fails.
 #
 # This repo is public, so its run logs are public: no step prints league data. The
 # credentials are Actions secrets -- encrypted, never shown in logs, never given to
@@ -33,6 +36,10 @@ on:
     inputs:
       open_pr:
         description: "Open the pull request on jimoody.com (off: build and check only)"
+        type: boolean
+        default: true
+      merge:
+        description: "Merge it once the site's checks pass (off: leave it open for a look)"
         type: boolean
         default: true
 
@@ -205,27 +212,58 @@ jobs:
               "" \
               "Opened by the Tuesday refresh: $RUN_URL" \
               "" \
-              "Merging publishes the site; the GroupMe congrats follows within the hour." > "$RUNNER_TEMP/body.md"
+              "It merges itself once the site's checks pass; the GroupMe congrats follows within the hour." > "$RUNNER_TEMP/body.md"
             url=$(gh pr create --base master --head "$BRANCH" --title "Week $WEEK refresh" --body-file "$RUNNER_TEMP/body.md")
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: Email -- ready to merge
+      # The site's checks must all pass (pages render and match the code, the recap
+      # runs for every league and week, the Cloudflare preview builds); then it
+      # merges and master's deploy publishes it. Checks take a moment to register.
+      - name: Merge once the site's checks pass
+        id: merge
+        if: steps.pr.outputs.url != '' && (github.event_name == 'schedule' || inputs.merge)
+        env:
+          GH_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          for i in $(seq 1 40); do
+            n=$(gh pr view "$PR_URL" --json statusCheckRollup -q '.statusCheckRollup | length')
+            [ "${n:-0}" -ge 3 ] && break
+            sleep 15
+          done
+          gh pr checks "$PR_URL" --watch --fail-fast --interval 20
+          gh pr merge "$PR_URL" --merge --delete-branch
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Email -- the week is live
         if: steps.pr.outputs.url != ''
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           WEEK: ${{ steps.week.outputs.week }}
           PR_URL: ${{ steps.pr.outputs.url }}
+          MERGED: ${{ steps.merge.outputs.merged }}
         run: |
           python - <<'PY'
           import os
           from src.notify.send_email import send
           week, url = os.environ["WEEK"], os.environ["PR_URL"]
-          send(f"[FFF] Week {week} refresh is ready to merge",
-               f"Every league is refreshed for week {week}. Look over the preview and merge:\n\n{url}\n\n"
-               "Merging publishes jimoody.com; the GroupMe congrats follows within the hour.\n",
-               to=[os.environ["SMTP_USER"]])
+          if os.environ.get("MERGED") == "true":
+              send(f"[FFF] Week {week} is live on jimoody.com",
+                   f"Every league is refreshed for week {week} and published; the site updates within a "
+                   f"few minutes and the GroupMe congrats follows within the hour.
+
+{url}
+",
+                   to=[os.environ["SMTP_USER"]])
+          else:
+              send(f"[FFF] Week {week} refresh is ready to merge",
+                   f"Every league is refreshed for week {week}. Look over the preview and merge:
+
+{url}
+",
+                   to=[os.environ["SMTP_USER"]])
           PY
 
       - name: Email -- the refresh failed

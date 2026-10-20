@@ -291,8 +291,10 @@ secrets) and nflverse, a fresh warehouse (`dbt run` without raw_espn, the ESPN p
 `espn_projections`, then a full `dbt build`), every export, then in a jimoody.com
 checkout `refresh_fixtures.py` and `render_all.py`, and a pull request "Week N
 refresh" on the site (SITE_REPO_TOKEN needs Contents and Pull requests write). It
-emails SMTP_USER the PR link, or the run link if a step fails. The merge stays a
-person's. The Dagster `adn_weekly_refresh` schedule is stopped so ADN is not
+merges it once the site's checks pass -- the one automated exception to "a person
+merges to master" -- so Cloudflare publishes it and the GroupMe congrats follows. It
+emails SMTP_USER "week N is live", or the run link if a step or check fails (the PR
+then stays open). The Dagster `adn_weekly_refresh` schedule is stopped so ADN is not
 refreshed twice; the job still runs by hand.
 
 ### Failure emails (`orchestration/alerts.py`)
