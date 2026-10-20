@@ -268,7 +268,7 @@ players), `plays_export.py`.
 
 ### Monday night talking points (`.github/workflows/mnf-talking-points.yml`)
 
-Every Monday at 11:00 Eastern, GitHub Actions emails ADN's commissioner the state of
+Every Monday at 11:07 Eastern, GitHub Actions emails ADN's commissioner the state of
 every game going into Monday night, from justin@jimoody.com. It pulls ADN's week in
 progress from Yahoo and the plays from nflverse, builds the warehouse, and exports
 with `FFF_PROCESSED_DIR=data/preview` -- `yahoo_site_export.py --live` (the week in
@@ -285,7 +285,7 @@ for a test, with FFF_PROCESSED_DIR pointed at data/preview.
 
 ### The Tuesday refresh (`.github/workflows/tuesday-refresh.yml`)
 
-Every Tuesday at 11:00 Eastern, GitHub Actions refreshes every league with no PC on:
+Every Tuesday at 11:17 Eastern, GitHub Actions refreshes every league with no PC on:
 Yahoo (ADN), ESPN (College Forever, Carrboro; cookies ESPN_S2_* / ESPN_SWID_* as
 secrets) and nflverse, a fresh warehouse (`dbt run` without raw_espn, the ESPN pull,
 `espn_projections`, then a full `dbt build`), every export, then in a jimoody.com
