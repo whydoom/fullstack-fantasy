@@ -49,6 +49,7 @@ import duckdb
 from zoneinfo import ZoneInfo
 
 from espn_team_weeks import optimal_score
+from src.played import played
 from src.ingest.discover import latest_league_key as resolve_league_key
 from src.ingest.leagues import LEAGUES, keys, selected
 from src.load.yahoo_raw import WAREHOUSE_PATH
@@ -224,7 +225,11 @@ def export(league: str, live_week: bool = False) -> None:
                 h["status"][w] = "start" if r["is_starter"] else "bench"
                 h["pts"][w] = float(r["fantasy_points"])
                 h["slot"][w] = label(r["selected_position"])
-                h.setdefault("played", {})[w] = bool(r["recorded_stats"])
+                # did he play? nflverse's snaps and stats, Yahoo's stat line only
+                # where nflverse cannot tell (src/played.py) -- Yahoo leaves the
+                # line empty for a player who played but recorded nothing
+                h.setdefault("played", {})[w] = played(
+                    "yahoo", r["player_key"], season, w, bool(r["recorded_stats"]))
                 # lineup slots he could fill that week, in site labels
                 h.setdefault("eligible", {})[w] = [label(e) for e in r["eligible_positions"]
                                                    if e not in ("BN", "IR")]
