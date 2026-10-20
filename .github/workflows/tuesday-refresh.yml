@@ -227,12 +227,28 @@ jobs:
           GH_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
           PR_URL: ${{ steps.pr.outputs.url }}
         run: |
-          for i in $(seq 1 40); do
-            n=$(gh pr view "$PR_URL" --json statusCheckRollup -q '.statusCheckRollup | length')
-            [ "${n:-0}" -ge 3 ] && break
-            sleep 15
+          # Merge only when all three checks are seen by name and passed. A failed check
+          # fails the run (email with the link); one the token cannot see, or still
+          # missing after 10 minutes, leaves the PR open and the email says "ready to
+          # merge" -- never a merge without all three.
+          need='^(Pages render for every league|Recap runs for every league and week|Workers Builds: jimoody-com)='
+          passed=0
+          for i in $(seq 1 60); do
+            gh pr view "$PR_URL" --json statusCheckRollup \
+              -q '.statusCheckRollup[] | "\(.name // .context)=\(.conclusion // .state // .status)"' \
+              | grep -E "$need" > "$RUNNER_TEMP/checks.txt" || true
+            if grep -qE "=(FAILURE|ERROR|CANCELLED|TIMED_OUT|ACTION_REQUIRED|STARTUP_FAILURE)$" "$RUNNER_TEMP/checks.txt"; then
+              echo "A site check failed; the PR stays open:"; cat "$RUNNER_TEMP/checks.txt"; exit 1
+            fi
+            passed=$(grep -c "=SUCCESS$" "$RUNNER_TEMP/checks.txt" || true)
+            [ "$passed" -eq 3 ] && break
+            sleep 10
           done
-          gh pr checks "$PR_URL" --watch --fail-fast --interval 20
+          if [ "$passed" -ne 3 ]; then
+            echo "$passed of the 3 site checks seen passing after 10 minutes; leaving the PR open:"
+            cat "$RUNNER_TEMP/checks.txt"
+            exit 0
+          fi
           gh pr merge "$PR_URL" --merge --delete-branch
           echo "merged=true" >> "$GITHUB_OUTPUT"
 
@@ -252,17 +268,11 @@ jobs:
           if os.environ.get("MERGED") == "true":
               send(f"[FFF] Week {week} is live on jimoody.com",
                    f"Every league is refreshed for week {week} and published; the site updates within a "
-                   f"few minutes and the GroupMe congrats follows within the hour.
-
-{url}
-",
+                   f"few minutes and the GroupMe congrats follows within the hour.\n\n{url}\n",
                    to=[os.environ["SMTP_USER"]])
           else:
               send(f"[FFF] Week {week} refresh is ready to merge",
-                   f"Every league is refreshed for week {week}. Look over the preview and merge:
-
-{url}
-",
+                   f"Every league is refreshed for week {week}. Look over the preview and merge:\n\n{url}\n",
                    to=[os.environ["SMTP_USER"]])
           PY
 
