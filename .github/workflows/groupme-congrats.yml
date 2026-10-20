@@ -1,0 +1,90 @@
+# "Congrats on the win" to ADN's GroupMe, once a week, right after the site updates.
+#
+# Every hour on Tuesdays it looks at jimoody.com's published data (the fixtures
+# snapshot on the site's master branch, which the Tuesday refresh replaces). It
+# posts only when ADN's data changed in the last 36 hours (the site was just
+# updated) and its latest week has not been congratulated yet -- a cache entry
+# per season-week remembers that -- so it posts once, whatever time the refresh
+# lands, and never for an old week.
+#
+# Secrets: GROUPME_BOT_ID (dev.groupme.com/bots: the bot for the league's group),
+# SITE_REPO_TOKEN (read-only, whydoom/jimoody.com). Logs are public: nothing here
+# prints league data, only the week.
+name: GroupMe congrats
+
+on:
+  schedule:
+    - cron: "0 13-23 * * 2"       # Tuesdays, hourly, 9am-7pm Eastern (8am-6pm in standard time)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Post even if this week was already congratulated or the site has not changed"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: groupme-congrats
+  cancel-in-progress: false
+
+jobs:
+  congrats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+      LEAGUE: adn
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out jimoody.com (the published data)
+        uses: actions/checkout@v4
+        with:
+          repository: whydoom/jimoody.com
+          token: ${{ secrets.SITE_REPO_TOKEN }}
+          path: site
+          fetch-depth: 50
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Which week, and is it new?
+        id: week
+        run: |
+          week=$(python -m src.notify.groupme_congrats --site site --league "$LEAGUE" --latest-week)
+          changed=$(git -C site log -1 --format=%ct -- "fixtures/processed/$LEAGUE")
+          age=$(( $(date +%s) - ${changed:-0} ))
+          echo "week=$week" >> "$GITHUB_OUTPUT"
+          echo "key=groupme-congrats-$LEAGUE-$(date +%Y)-w$week" >> "$GITHUB_OUTPUT"
+          if [ "$age" -lt 129600 ] || [ "${{ inputs.force }}" = "true" ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "Week $week: the site's data has not changed in 36 hours; nothing to do."
+          fi
+
+      - name: Already congratulated?
+        id: done
+        if: steps.week.outputs.fresh == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .congrats
+          key: ${{ steps.week.outputs.key }}
+
+      - name: Post to GroupMe
+        if: steps.week.outputs.fresh == 'true' && (steps.done.outputs.cache-hit != 'true' || inputs.force)
+        env:
+          GROUPME_BOT_ID: ${{ secrets.GROUPME_BOT_ID }}
+        run: |
+          mkdir -p .congrats
+          python -m src.notify.groupme_congrats --site site --league "$LEAGUE" --week-file .congrats/week
+
+      - name: Remember the week
+        if: steps.week.outputs.fresh == 'true' && steps.done.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .congrats
+          key: ${{ steps.week.outputs.key }}
