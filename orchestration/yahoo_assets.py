@@ -32,11 +32,10 @@ the next week has not kicked off, so Yahoo's season-to-date totals equal the sum
 the final weeks the page shows (see yahoo_site_export.py). Stat corrections keep
 arriving for a few days, which is why the landing re-fetches the previous week too.
 
-The schedule is defined as RUNNING, so it is on as soon as the code loads; Dagster's
-default is stopped until someone switches it on in the UI, and `dagster dev` without
-a DAGSTER_HOME does not remember that switch between sessions. It still only fires
-while the Dagster daemon is running, which locally means while `dagster dev` is up. Nothing here runs unattended on a server; that would need a
-host, which is a cost decision, not a code one.
+The schedule is defined as STOPPED: the Tuesday refresh runs in GitHub Actions
+(.github/workflows/tuesday-refresh.yml), every league, with no PC on. This job stays
+for running ADN by hand from the UI; switching the schedule on would refresh ADN a
+second time, locally, and only while `dagster dev` is up.
 """
 
 # No `from __future__ import annotations`: Dagster inspects the `context`
@@ -239,6 +238,6 @@ adn_weekly_schedule = ScheduleDefinition(
     job=adn_weekly_refresh,
     cron_schedule="0 8 * * 2",
     execution_timezone="America/New_York",
-    default_status=DefaultScheduleStatus.RUNNING,
+    default_status=DefaultScheduleStatus.STOPPED,
     description="Tuesday 8:00 ET: week final, next week not yet kicked off.",
 )
