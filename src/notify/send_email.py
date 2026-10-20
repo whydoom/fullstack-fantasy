@@ -1,12 +1,15 @@
-"""Send one HTML email (with a plain-text part) through an SMTP account.
+"""Send one email (plain text, with an HTML part if given) through an SMTP account.
 
     python -m src.notify.send_email --subject-file S --html H --text T
+
+or, from Python, send(subject, text, html=None, to=None).
 
 Account and recipients come from the environment, never the command line or the
 repo: SMTP_USER (the sending address, e.g. justin@jimoody.com), SMTP_PASSWORD (a
 Google Workspace app password), SMTP_HOST / SMTP_PORT (default smtp.gmail.com:587,
-STARTTLS), MAIL_TO and optional MAIL_CC (comma-separated). Prints only that it
-sent and to how many people: the scheduled run's logs are public.
+STARTTLS), MAIL_TO and optional MAIL_CC (comma-separated) unless `to` is given.
+Prints only that it sent and to how many people: the scheduled run's logs are
+public.
 """
 
 from __future__ import annotations
@@ -23,29 +26,27 @@ def addresses(name: str) -> list[str]:
     return [a.strip() for a in (os.environ.get(name) or "").split(",") if a.strip()]
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--subject-file", type=Path, required=True)
-    ap.add_argument("--html", type=Path, required=True)
-    ap.add_argument("--text", type=Path, required=True)
-    a = ap.parse_args()
-
+def send(subject: str, text: str, html: str | None = None, to: list[str] | None = None,
+         cc: list[str] | None = None) -> None:
+    """Send one message; raises SystemExit with the reason if it cannot."""
     # Google shows an app password as four groups ("abcd efgh ijkl mnop"); spaces or
     # a stray newline pasted into the secret break the login, so strip them.
     user = (os.environ.get("SMTP_USER") or "").strip()
     password = "".join((os.environ.get("SMTP_PASSWORD") or "").split())
-    to, cc = addresses("MAIL_TO"), addresses("MAIL_CC")
+    to = to if to is not None else addresses("MAIL_TO")
+    cc = cc if cc is not None else addresses("MAIL_CC")
     if not (user and password and to):
-        raise SystemExit("SMTP_USER, SMTP_PASSWORD and MAIL_TO must be set.")
+        raise SystemExit("SMTP_USER, SMTP_PASSWORD and a recipient must be set.")
 
     msg = EmailMessage()
-    msg["Subject"] = a.subject_file.read_text(encoding="utf-8").strip()
+    msg["Subject"] = subject.strip()
     msg["From"] = os.environ.get("MAIL_FROM") or user
     msg["To"] = ", ".join(to)
     if cc:
         msg["Cc"] = ", ".join(cc)
-    msg.set_content(a.text.read_text(encoding="utf-8"))
-    msg.add_alternative(a.html.read_text(encoding="utf-8"), subtype="html")
+    msg.set_content(text)
+    if html:
+        msg.add_alternative(html, subtype="html")
 
     host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
     errors = []
@@ -73,6 +74,16 @@ def main() -> None:
         except (smtplib.SMTPException, OSError) as e:
             errors.append(f"{port}/{tls}: {type(e).__name__}: {e}")
     raise SystemExit("Could not send. " + " | ".join(errors))
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--subject-file", type=Path, required=True)
+    ap.add_argument("--html", type=Path, required=True)
+    ap.add_argument("--text", type=Path, required=True)
+    a = ap.parse_args()
+    send(a.subject_file.read_text(encoding="utf-8"), a.text.read_text(encoding="utf-8"),
+         a.html.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
