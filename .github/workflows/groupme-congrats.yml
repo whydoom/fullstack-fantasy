@@ -54,6 +54,10 @@ jobs:
       - name: Which week, and is it new?
         id: week
         run: |
+          if ! python -m src.notify.plan tuesday_congrats "$LEAGUE"; then
+            echo "tuesday_congrats is off for $LEAGUE (src/ingest/leagues.py notify)."
+            echo "fresh=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
           week=$(python -m src.notify.groupme_congrats --site site --league "$LEAGUE" --latest-week)
           changed=$(git -C site log -1 --format=%ct -- "fixtures/processed/$LEAGUE")
           age=$(( $(date +%s) - ${changed:-0} ))

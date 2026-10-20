@@ -291,11 +291,29 @@ secrets) and nflverse, a fresh warehouse (`dbt run` without raw_espn, the ESPN p
 `espn_projections`, then a full `dbt build`), every export, then in a jimoody.com
 checkout `refresh_fixtures.py` and `render_all.py`, and a pull request "Week N
 refresh" on the site (SITE_REPO_TOKEN needs Contents and Pull requests write). It
-merges it once the site's checks pass -- the one automated exception to "a person
-merges to master" -- so Cloudflare publishes it and the GroupMe congrats follows. It
+jimoody.com merges it itself (its `refresh-merge.yml`) once every check passes -- the
+one automated exception to "a person merges to master"; this token cannot read checks,
+so the run waits for the merge. Then it starts the GroupMe congrats and sends each
+league's Tuesday recap (see Scheduled sends). It
 emails SMTP_USER "week N is live", or the run link if a step or check fails (the PR
 then stays open). The Dagster `adn_weekly_refresh` schedule is stopped so ADN is not
 refreshed twice; the job still runs by hand.
+
+### Scheduled sends, per league (`notify` in `src/ingest/leagues.py`)
+
+Each league lists the sends it gets; one left out is off. `python -m
+src.notify.plan <send>` prints the leagues it is on for (with the channel and the
+Actions secret holding the address); each workflow asks it before sending.
+
+| send | when | ADN | College Forever | Carrboro |
+|---|---|---|---|---|
+| monday_talking_points | Mon 11:07 ET | email, MAIL_TO | -- | -- |
+| tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
+| tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
+| wednesday_waivers | Wed, after 3am waivers (not built) | GroupMe | email, MAIL_TO_CF | -- |
+
+A new address is a new Actions secret plus its name in the league's `notify`; a
+workflow that sends must also map that secret into its env.
 
 ### Failure emails (`orchestration/alerts.py`)
 
