@@ -283,6 +283,16 @@ the recipients are Actions secrets, readable only by workflows of people with wr
 access, and no step prints league data (public logs). The same commands run locally
 for a test, with FFF_PROCESSED_DIR pointed at data/preview.
 
+### GroupMe congrats (`.github/workflows/groupme-congrats.yml`)
+
+Tuesdays, hourly, a workflow reads jimoody.com's published data (a checkout of the
+site's master: its fixtures snapshot, with the site's own team tags) and posts "Week N
+is in the books. Congrats to this week's winners: ..." to ADN's GroupMe through a bot
+(`src/notify/groupme_congrats.py`, secret GROUPME_BOT_ID). It posts only when ADN's
+fixtures changed in the last 36 hours (the site was just updated) and that week was
+not congratulated yet (a GitHub Actions cache entry per season-week), so it fires once,
+right after the Tuesday refresh is merged. "Run workflow" with force posts again.
+
 ### In-game injuries (`fct_player_game_injury`)
 
 The official play-by-play logs an injury that stops play ("SEA-14-S.Darnold was
