@@ -22,6 +22,7 @@ from pathlib import Path
 from src.ingest.espn import (BASE, PROJECT_ROOT, EspnClient, current_season,
                              processed_dir)
 from src.ingest.leagues import LEAGUES, keys, selected
+from src.played import played
 
 OUT_NAME = "espn_team_weeks.json"
 
@@ -346,8 +347,9 @@ def main(league_key):
                     "rank": r["rank"] if r else None,
                     "pts": r["pts"] if r else None,
                     "status": statuses.get(wk, "off"),
-                    # no stat line at all is also "did not play"
-                    "played": bool(r and r["played"]),
+                    # no stat line at all is also "did not play"; nflverse's snaps
+                    # and stats overrule ESPN's line where they can (src/played.py)
+                    "played": played("espn", pid, season, wk, bool(r and r["played"])),
                 }
             st = season_tot.get(pid)
             players.append({
