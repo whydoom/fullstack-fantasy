@@ -1,0 +1,110 @@
+# Thursday night: the week's first touchdown, for each league with thursday_first_td
+# on (src/ingest/leagues.py notify) -- GroupMe or email. Built like the live
+# "this one's over" calls, on the same Worker clock, so a Thursday shows that the
+# whole chain fires on its own before Sunday.
+#
+# Started every 10 minutes by jimoody.com's Cloudflare Worker, Thursday 8pm to
+# midnight Eastern. Reads ESPN's public NFL scoreboard (src/notify/first_td.py) and
+# sends "X scored this week's first touchdown on a pass from Y." once a week (a
+# cache entry remembers). Needs no Yahoo, no site: SMTP_USER / SMTP_PASSWORD and
+# GROUPME_BOT_ID only. Public logs: nothing but what it found.
+name: Thursday first touchdown
+
+on:
+  workflow_dispatch:
+    inputs:
+      any_time:
+        description: "Run outside Thursday night (a test)"
+        type: boolean
+        default: false
+      week:
+        description: "A past week to call (a test; default: this week)"
+        required: false
+      only_me:
+        description: "Email it to SMTP_USER instead of its channel (a test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: thursday-first-td
+  cancel-in-progress: false
+
+jobs:
+  first-td:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Thursday night, for leagues with this send on
+        id: gate
+        run: |
+          day=$(TZ=America/New_York date +%a); hour=$(TZ=America/New_York date +%H)
+          if [ "${{ inputs.any_time }}" != "true" ] && ! { [ "$day" = "Thu" ] && [ "$hour" -ge 20 ]; }; then
+            echo "$day ${hour}h Eastern: not Thursday night."; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          python3 -m src.notify.plan thursday_first_td > plan.txt
+          if [ ! -s plan.txt ]; then echo "No league has thursday_first_td on."; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "go=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install (only what this needs)
+        if: steps.gate.outputs.go == 'true'
+        run: pip install -q requests==2.34.2 python-dotenv==1.2.3     # as in requirements.txt
+
+      - name: Which week
+        id: week
+        if: steps.gate.outputs.go == 'true'
+        env:
+          WEEK_IN: ${{ inputs.week }}
+        run: |
+          args=""; [ -n "$WEEK_IN" ] && args="--week $WEEK_IN --season $(date +%Y)"
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+          echo "key=first-td-$(python -m src.notify.first_td $args --out out --week-only)" >> "$GITHUB_OUTPUT"
+
+      - name: Already called this week?
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .first-td
+          key: ${{ steps.week.outputs.key }}-${{ github.run_id }}
+          restore-keys: ${{ steps.week.outputs.key }}-
+
+      - name: Find and send
+        id: send
+        if: steps.gate.outputs.go == 'true'
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          GROUPME_BOT_ID: ${{ secrets.GROUPME_BOT_ID }}
+          ONLY_ME: ${{ github.event_name == 'workflow_dispatch' && inputs.only_me }}
+        run: |
+          python -m src.notify.first_td ${{ steps.week.outputs.args }} --sent .first-td/sent.json --out out
+          [ -f out/message.txt ] || exit 0
+          while read -r league via secret; do
+            if [ "$ONLY_ME" = "true" ] || [ "$via" = "email" ]; then
+              to="$SMTP_USER"; [ "$ONLY_ME" = "true" ] || to="${!secret}"
+              MAIL_TO="$to" MAIL_CC="" python -m src.notify.send_email --subject-file out/subject.txt \
+                --html out/message.txt --text out/message.txt < /dev/null
+            elif [ "$via" = "groupme" ]; then
+              python -m src.notify.groupme --text-file out/message.txt < /dev/null
+            fi
+            echo "$league: sent by $([ "$ONLY_ME" = "true" ] && echo test-email || echo "$via")"
+          done < plan.txt
+          echo "sent=true" >> "$GITHUB_OUTPUT"
+
+      - name: Remember it was called
+        if: steps.send.outputs.sent == 'true' && !inputs.only_me
+        uses: actions/cache/save@v4
+        with:
+          path: .first-td
+          key: ${{ steps.week.outputs.key }}-${{ github.run_id }}
