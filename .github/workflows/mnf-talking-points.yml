@@ -35,6 +35,7 @@ on:
 
 permissions:
   contents: read
+  actions: read    # to see whether today's run already went
 
 concurrency:
   group: mnf-talking-points
@@ -55,7 +56,20 @@ jobs:
 
       - name: Only at 11:07 Eastern, for a league with this send on
         id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # A backup: the site's Cloudflare trigger starts this on the minute. A late
+          # GitHub schedule skips itself when today's (Eastern) run already succeeded or is
+          # still going, so nothing is sent twice (a failed one is retried).
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            ran=$(gh run list -R "${{ github.repository }}" --workflow "${{ github.workflow }}"                     --created ">=$(date -u -d "$(TZ=America/New_York date +%F) 00:00 $(TZ=America/New_York date +%z)" +%FT%TZ)" --json databaseId,status,conclusion                     -q "[.[] | select(.databaseId != ${{ github.run_id }})
+                             | select(.status != \"completed\" or .conclusion == \"success\")] | length")
+            if [ "${ran:-0}" -gt 0 ]; then
+              echo "Today's run already went (or is going); this scheduled backup skips."
+              echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          fi
           if ! python3 -m src.notify.plan monday_talking_points adn; then
             echo "monday_talking_points is off for adn (src/ingest/leagues.py notify)."
             echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
