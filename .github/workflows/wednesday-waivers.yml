@@ -1,7 +1,7 @@
 # The Wednesday waivers report: the claims that went through overnight, to each
 # league that has wednesday_waivers on (src/ingest/leagues.py notify) -- GroupMe
-# or email. 7:47 Eastern every Wednesday, after the night's claims: Yahoo's run
-# about 3:40, ESPN's about 7:05. 8:17 and 8:47 are backups -- GitHub drops scheduled
+# or email. 6:07 Eastern every Wednesday, after the night's claims (Yahoo's run
+# about 3:43, ESPN's about 4:04). 6:37 and 7:07 are backups -- GitHub drops scheduled
 # runs now and then -- and do nothing once a league's report has gone out.
 #
 # Pulls the leagues' transactions fresh (Yahoo through the warehouse plus its public
@@ -15,15 +15,15 @@
 name: Wednesday waivers
 
 on:
-  # 7:47, 8:17 and 8:47 Eastern, in UTC for both halves of the year (EDT is UTC-4,
+  # 6:07, 6:37 and 7:07 Eastern, in UTC for both halves of the year (EDT is UTC-4,
   # EST UTC-5); the first step lets through only the ones that are those Eastern
   # times today. Off the hour: GitHub drops :00 runs most.
   schedule:
-    - cron: "47 11 * * 3"
-    - cron: "17 12 * * 3"
-    - cron: "47 12 * * 3"
-    - cron: "17 13 * * 3"
-    - cron: "47 13 * * 3"
+    - cron: "7 10 * * 3"
+    - cron: "37 10 * * 3"
+    - cron: "7 11 * * 3"
+    - cron: "37 11 * * 3"
+    - cron: "7 12 * * 3"
   workflow_dispatch:
     inputs:
       week:
@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Only at 7:47, 8:17 or 8:47 Eastern, for leagues with this send on
+      - name: Only at 6:07, 6:37 or 7:07 Eastern, for leagues with this send on
         id: gate
         env:
           CRON: ${{ github.event.schedule }}
@@ -71,8 +71,8 @@ jobs:
             set -- $CRON
             offset=$(TZ=America/New_York date +%z)            # -0400 or -0500
             et=$(( ($2 + ${offset:0:3}) * 60 + $1 ))           # minutes after midnight
-            case "$et" in 467|497|527) ;; *)
-              echo "Cron $CRON is not 7:47/8:17/8:47 Eastern today; skipping."
+            case "$et" in 367|397|427) ;; *)
+              echo "Cron $CRON is not 6:07/6:37/7:07 Eastern today; skipping."
               echo "go=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
             esac
           fi
