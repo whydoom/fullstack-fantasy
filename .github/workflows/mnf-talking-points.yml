@@ -51,9 +51,15 @@ jobs:
       YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
       PYTHONUTF8: "1"
     steps:
-      - name: Only at 11:07 Eastern
+      - uses: actions/checkout@v4
+
+      - name: Only at 11:07 Eastern, for a league with this send on
         id: gate
         run: |
+          if ! python3 -m src.notify.plan monday_talking_points adn; then
+            echo "monday_talking_points is off for adn (src/ingest/leagues.py notify)."
+            echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
           # Which cron fired, not the clock: a scheduled run can start late, so the
           # 15:07 UTC one is for daylight time (UTC-4) and the 16:07 one for standard.
           offset=$(TZ=America/New_York date +%z)
@@ -64,9 +70,6 @@ jobs:
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - uses: actions/checkout@v4
-        if: steps.gate.outputs.go == 'true'
 
       - name: Check out jimoody.com (the recap engine)
         if: steps.gate.outputs.go == 'true'

@@ -34,6 +34,14 @@ from __future__ import annotations
 # first-round bye sits inside the playoffs. `tone` fills those teams' buttons:
 # "green", "yellow", "red" or "blue" (a team takes its narrowest zone's tone; a
 # most_pf tone wins over any other, the team keeping its place).
+# `notify`: the scheduled sends this league gets, by name -- a send left out is off
+# (src/notify/plan.py reads it; the workflows ask it before sending):
+#   monday_talking_points   Monday 11:07 ET: the games going into Monday night
+#   tuesday_congrats        after the Tuesday refresh: congrats to the week's winners
+#   tuesday_recap           after the Tuesday refresh: the week in review (recap.tuesday)
+#   wednesday_waivers       Wednesday, after waivers clear (not built yet)
+# Each is {"via": "email" | "groupme", "to": the Actions secret holding the address
+# or bot id}. Addresses never live here: this repo is public.
 LEAGUES = {
     "adn": {
         "platform": "yahoo",
@@ -47,6 +55,11 @@ LEAGUES = {
             {"label": "Most PF", "most_pf": True, "tone": "blue"},
             {"label": "Loser punishment", "last": 1, "tone": "red"},
         ],
+        "notify": {
+            "monday_talking_points": {"via": "email", "to": "MAIL_TO"},
+            "tuesday_congrats": {"via": "groupme", "to": "GROUPME_BOT_ID"},
+            "wednesday_waivers": {"via": "groupme", "to": "GROUPME_BOT_ID"},
+        },
     },
     "college-forever": {
         "platform": "espn",
@@ -62,6 +75,10 @@ LEAGUES = {
             {"label": "1st-round bye", "from": 1, "to": 2, "tone": "green"},
             {"label": "Playoffs", "from": 1, "to": 6, "tone": "yellow"},
         ],
+        "notify": {
+            "tuesday_recap": {"via": "email", "to": "MAIL_TO_CF"},
+            "wednesday_waivers": {"via": "email", "to": "MAIL_TO_CF"},
+        },
     },
     "carrboro": {
         "platform": "espn",
