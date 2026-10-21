@@ -2,7 +2,9 @@
 
     python faab_adn.py               # writes data/processed/adn/yahoo_faab.json
 
-Reads the dbt marts, so run the Yahoo landing, load and `dbt build` first. Every
+Reads the dbt marts, so run the Yahoo landing, load and `dbt build` first, and
+src.ingest.yahoo_faab_offers for the second bids (the losing bids are only on the
+league's web page; without them the chart shows no overspend). Every
 number here is already modelled and tested: fct_transaction attributes each bid to
 the add leg it paid for, and tests/assert_yahoo_faab_balance_reconciles.sql proves
 every team's Yahoo balance equals the budget minus those bids. This script only
@@ -60,6 +62,22 @@ def export_faab(con, lk, season, abbrev, out_dir, budget: int = 100) -> None:
     balance = {r["team_id"]: r["faab_balance"] for r in rows(con, """
         select team_id, faab_balance from stg_yahoo__team_snapshots
         where league_key = ?""", lk)}
+    # Losing bids: Yahoo's API has none; the league's public FAB Offers page does
+    # (src/ingest/yahoo_faab_offers.py -> yahoo_claims.json, run first). A claim
+    # on it gets the best losing bid as its second bid; one not on it was
+    # uncontested (no second bid, the whole bid is overspend, as for Carrboro).
+    offers = out_dir / "yahoo_claims.json"
+    has_second = offers.exists()
+    lost = defaultdict(list)
+    if has_second:
+        for c in json.loads(offers.read_text(encoding="utf-8"))["claims"]:
+            if c["status"] in ("LOST_LOWER_OFFER", "LOST_LOWER_PRIORITY") and c["week"] is not None:
+                lost[(int(c["week"]), c["player"])].append(c["bid"])
+        for cl in claims.values():
+            for c in cl:
+                bids = lost.get((int(c["week"]), c["player"]))
+                c["second_bid"] = max(bids) if bids else None
+                c["overspend"] = (c["bid"] or 0) - (c["second_bid"] or 0)
     teams = {}
     for tid in sorted(abbrev):
         cl = claims.get(tid, [])
@@ -74,6 +92,7 @@ def export_faab(con, lk, season, abbrev, out_dir, budget: int = 100) -> None:
     (out_dir / "yahoo_faab.json").write_text(json.dumps({
         "league": LEAGUE, "season": season, "budget": budget,
         "counter_name": "Yahoo's remaining-balance figure",
+        "has_second_bids": has_second,
         "teams": teams}, indent=2), encoding="utf-8")
     n = sum(len(t["claims"]) for t in teams.values())
     print(f"  wrote yahoo_faab.json ({n} winning claims, "

@@ -299,6 +299,17 @@ emails SMTP_USER "week N is live", or the run link if a step or check fails (the
 then stays open). The Dagster `adn_weekly_refresh` schedule is stopped so ADN is not
 refreshed twice; the job still runs by hand.
 
+### Next week's pairings and Yahoo's losing bids
+
+- `schedule_export.py` writes `{platform}_schedule.json`: the week after the latest
+  final week and its games (Yahoo from `stg_yahoo__matchup_teams`, ESPN from the
+  mMatchup view). jimoody.com's Matchups shows them as next week's squares.
+- `src/ingest/yahoo_faab_offers.py` reads the league's public FAB Offers page (the
+  only place Yahoo shows losing bids) into `yahoo_claims.json`; `faab_adn.py` turns
+  it into each claim's second bid and overspend (`has_second_bids`), and the
+  waivers report into lower bids. Run after `yahoo_site_export.py`, before
+  `faab_adn.py`. If the league stops being publicly viewable, there are no second bids.
+
 ### Scheduled sends, per league (`notify` in `src/ingest/leagues.py`)
 
 Each league lists the sends it gets; one left out is off. `python -m

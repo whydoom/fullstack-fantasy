@@ -156,6 +156,9 @@ jobs:
         if: steps.gate.outputs.go == 'true'
         run: |
           python yahoo_site_export.py > /dev/null
+          # Yahoo's losing bids: only on the league's public FAB Offers page (for the
+          # FAAB chart's second bids and overspend). Without it, no overspend this week.
+          python -m src.ingest.yahoo_faab_offers > /dev/null || echo "Yahoo's FAB Offers page could not be read; no second bids for Yahoo leagues."
           python faab_adn.py > /dev/null
           # this week's pickups into the player list, then the two exports that
           # ask nflverse about them once more
@@ -165,6 +168,7 @@ jobs:
           python byes.py > /dev/null
           python plays_export.py > /dev/null
           python matchups_export.py > /dev/null
+          python schedule_export.py > /dev/null      # next week's pairings, for Matchups
 
       - name: Render jimoody.com
         if: steps.gate.outputs.go == 'true'
