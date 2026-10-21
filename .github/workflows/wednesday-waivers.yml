@@ -7,7 +7,8 @@
 # Pulls the leagues' transactions fresh (Yahoo through the warehouse plus its public
 # FAB Offers page for the losing bids, ESPN's pickups and claims straight from ESPN), fills in the rest from what jimoody.com published
 # Tuesday, and builds the report with src/notify/waivers.py. Sends once per league
-# and week (a cache entry remembers); a week with no claims sends nothing.
+# and week (a cache entry remembers); a week with no claims sends nothing. Then
+# updates jimoody.com's data so its coming-week tab shows the waivers.
 #
 # Public logs: no step prints league data. Secrets: the Yahoo app and token, the
 # ESPN cookies, SITE_REPO_TOKEN, SMTP_USER / SMTP_PASSWORD, GROUPME_BOT_ID and each
@@ -35,6 +36,10 @@ on:
         default: true
       force:
         description: "Send even if this week was already sent"
+        type: boolean
+        default: false
+      update_site:
+        description: "Update jimoody.com's data with the waivers (scheduled runs always do)"
         type: boolean
         default: false
 
@@ -127,6 +132,7 @@ jobs:
           python faab_adn.py > /dev/null
           python pickups_espn.py > /dev/null
           python claims_espn.py > /dev/null
+          python faab_carrboro.py > /dev/null     # FAAB leagues' budgets, for the site
           # what the report reads but the night did not change (team tags, weeks):
           # from what the site published Tuesday, never over a fresh file
           for d in site/fixtures/processed/*/; do
@@ -196,6 +202,58 @@ jobs:
         with:
           path: .waivers-sent
           key: wednesday-waivers-${{ env.WEEK }}-${{ github.run_id }}
+
+      # The site's coming-week tab shows the waiver summary: update jimoody.com's data
+      # (fixtures and pages only) as a refresh-* PR, which the site merges itself
+      # once its checks pass (its refresh-merge.yml). By hand: only with update_site.
+      - name: Update jimoody.com with the waivers
+        id: site
+        if: steps.gate.outputs.go == 'true' && (github.event_name == 'schedule' || inputs.update_site)
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python refresh_fixtures.py > /dev/null
+          FFF_DATA=fixtures python render_all.py > /dev/null
+          FFF_DATA=fixtures python -m recap.all --every --out "$RUNNER_TEMP/recap" > /dev/null
+          if [ -z "$(git status --porcelain -- fixtures public)" ]; then
+            echo "The site already has these waivers."; exit 0
+          fi
+          branch="refresh-$(date +%Y)-w$WEEK-waivers"
+          git config user.name "whydoom"
+          git config user.email "whydoom@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add fixtures public
+          git commit -q -m "Week $WEEK waivers: every league"
+          git push -q -f origin "$branch"
+          url=$(gh pr list --head "$branch" --state open --json url -q '.[0].url')
+          if [ -z "$url" ]; then
+            url=$(gh pr create --base master --head "$branch" --title "Week $WEEK waivers"                   --body "Wednesday's waiver claims for every league (fixtures/ and the re-rendered pages). Opened by the waivers run: $RUN_URL. It merges itself once the site's checks pass.")
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for jimoody.com to merge it
+        if: steps.site.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
+          PR_URL: ${{ steps.site.outputs.url }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: |
+          for i in $(seq 1 100); do
+            [ "$(gh pr view "$PR_URL" --json state -q .state)" = "MERGED" ] && { echo "merged"; exit 0; }
+            sleep 15
+          done
+          # the messages went out; only the site waits -- say so
+          python - <<'PYEOF'
+          import os
+          from src.notify.send_email import send
+          send(f"[FFF] Week {os.environ['WEEK']} waivers: the site update is waiting",
+               "The waivers went out, but the site's update did not merge itself within 25 minutes "
+               f"(a check failed or is still running):\n\n{os.environ['PR_URL']}\n",
+               to=[os.environ["SMTP_USER"]])
+          PYEOF
 
       - name: Email -- the waivers report failed
         if: failure()
