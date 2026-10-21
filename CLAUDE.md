@@ -322,6 +322,7 @@ Actions secret holding the address); each workflow asks it before sending.
 | tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
 | wednesday_waivers | Wed 6:07 ET (6:37, 7:07 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
+| live_final | Sun 3pm-midnight, Mon 7pm-midnight, every 10 min | email, SMTP_USER (testing; then GroupMe) | -- | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
 lists the claims for the week after the latest final week, biggest bid first (with lower
@@ -335,6 +336,14 @@ to a test: every report emailed to SMTP_USER, nothing posted. After sending, a s
 PR, data and pages only, which the site merges itself) so its coming-week tab shows the
 waiver summary; by hand only with `update_site`. If it has not merged in 25 minutes,
 SMTP_USER gets an email.
+
+Live calls (`src/notify/live_final.py`, `.github/workflows/live-finals.yml`, started
+every 10 minutes by jimoody.com's Cloudflare Worker inside the windows): a game is
+over when the team behind cannot catch up with every player still to play scoring
+his most -- 50 if top 5 at his position this season, 30 otherwise, in-progress games
+included -- and the leader's players still to play counting for nothing. "Still to
+play" is his NFL game not final on ESPN's public scoreboard; a team on bye is done.
+Each game is called once a week (a cache entry). A live-feed hiccup skips that check.
 
 A new address is a new Actions secret plus its name in the league's `notify`; a
 workflow that sends must also map that secret into its env.

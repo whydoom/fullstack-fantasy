@@ -1,0 +1,133 @@
+# Live "this one's over" calls, for each league with live_final on
+# (src/ingest/leagues.py notify): GroupMe or email.
+#
+# Started every 10 minutes by jimoody.com's Cloudflare Worker while a game can end:
+# Sunday 3pm to midnight and Monday 7pm to midnight, Eastern. Each check reads the
+# live Yahoo scoreboard and starters and ESPN's public NFL scoreboard, calls every
+# game the team behind can no longer win (src/notify/live_final.py: 50 most for a
+# top-5 player at his position still to play, 30 otherwise, the leader's players
+# count for nothing), and sends the games newly over. A cache entry per week
+# remembers the games called, so none is called twice.
+#
+# Public logs: only counts are printed. Secrets: the Yahoo app and token,
+# SITE_REPO_TOKEN (season ranks and team tags from jimoody.com), SMTP_USER /
+# SMTP_PASSWORD, GROUPME_BOT_ID.
+name: Live finals
+
+on:
+  workflow_dispatch:
+    inputs:
+      any_time:
+        description: "Run outside the Sunday/Monday windows (a test)"
+        type: boolean
+        default: false
+      only_me:
+        description: "Email any call to SMTP_USER instead of its channel (a test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-finals
+  cancel-in-progress: false
+
+jobs:
+  finals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+      YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inside a window, for leagues with this send on
+        id: gate
+        run: |
+          day=$(TZ=America/New_York date +%a); hour=$(TZ=America/New_York date +%H)
+          if [ "${{ inputs.any_time }}" != "true" ] && \
+             ! { [ "$day" = "Sun" ] && [ "$hour" -ge 15 ]; } && ! { [ "$day" = "Mon" ] && [ "$hour" -ge 19 ]; }; then
+            echo "$day ${hour}h Eastern: no game can end now."; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          python3 -m src.notify.plan live_final > plan.txt
+          if [ ! -s plan.txt ]; then echo "No league has live_final on."; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "go=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check out jimoody.com
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: whydoom/jimoody.com
+          token: ${{ secrets.SITE_REPO_TOKEN }}
+          path: site
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install (only what a live check needs)
+        if: steps.gate.outputs.go == 'true'
+        run: pip install -q requests==2.34.2 python-dotenv==1.2.3     # as in requirements.txt
+
+      - name: Yahoo token
+        if: steps.gate.outputs.go == 'true'
+        env:
+          YAHOO_TOKEN_JSON: ${{ secrets.YAHOO_TOKEN_JSON }}
+        run: |
+          mkdir -p .secrets
+          printf '%s' "$YAHOO_TOKEN_JSON" > .secrets/token.json
+          chmod 600 .secrets/token.json
+
+      - name: Which week
+        id: week
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          python -m src.ingest.discover > /dev/null
+          echo "key=live-final-$(python -m src.notify.live_final --league "$(head -1 plan.txt | cut -d' ' -f1)" --week-only)" >> "$GITHUB_OUTPUT"
+
+      - name: Games already called this week
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .live-final
+          key: ${{ steps.week.outputs.key }}-${{ github.run_id }}
+          restore-keys: ${{ steps.week.outputs.key }}-
+
+      - name: Call and send
+        id: send
+        if: steps.gate.outputs.go == 'true'
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          GROUPME_BOT_ID: ${{ secrets.GROUPME_BOT_ID }}
+          ONLY_ME: ${{ github.event_name == 'workflow_dispatch' && inputs.only_me }}
+        run: |
+          mkdir -p .live-final
+          while read -r league via secret; do
+            out="out/$league"
+            python -m src.notify.live_final --site site --league "$league" \
+              --called ".live-final/$league.json" --out "$out" < /dev/null
+            [ -f "$out/message.txt" ] || continue
+            if [ "$ONLY_ME" = "true" ] || [ "$via" = "email" ]; then
+              to="$SMTP_USER"; [ "$ONLY_ME" = "true" ] || to="${!secret}"
+              cp "$out/message.txt" "$out/message.html"     # plain text either way
+              sed -i 's/$/<br>/' "$out/message.html"
+              MAIL_TO="$to" MAIL_CC="" python -m src.notify.send_email --subject-file "$out/subject.txt" \
+                --html "$out/message.html" --text "$out/message.txt" < /dev/null
+            elif [ "$via" = "groupme" ]; then
+              python -m src.notify.groupme --text-file "$out/message.txt" < /dev/null
+            fi
+            echo "$league: sent by $([ "$ONLY_ME" = "true" ] && echo test-email || echo "$via")"
+            echo "sent=true" >> "$GITHUB_OUTPUT"
+          done < plan.txt
+
+      - name: Remember the games called
+        if: steps.send.outputs.sent == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .live-final
+          key: ${{ steps.week.outputs.key }}-${{ github.run_id }}
