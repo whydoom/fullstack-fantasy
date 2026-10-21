@@ -32,12 +32,45 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import sys
 from pathlib import Path
 
 import requests
 
 LIMIT = 1000                         # GroupMe's cap on one message
+BLOWOUT = 30         # it cannot finish closer than this, even at the trailing team's most
+
+# Each called game opens with one of these, at random -- none twice in a message.
+# Close: decided, but the team behind could still finish within BLOWOUT. Blowout:
+# it cannot finish within BLOWOUT even with its most from everyone left.
+CLOSE = [
+    "This one's over!",
+    "I'm calling it.",
+    "Stick a fork in it, it's done.",
+    "Ballgame.",
+    "Game, set, match.",
+    "Lock it up, throw away the key.",
+    "We're done here, folks!",
+    "Dormie and dead.",
+]
+BLOWOUTS = [
+    "Turn out the lights, the party's over.",
+    "Start the buses.",
+    "Somebody check the pulse, because I'm not finding one.",
+    "The fat lady isn't just singing, she's taking her bows.",
+    "This game is toast, and someone left it in way too long.",
+    "This one's more well-done than a steak that a sloth is cooking.",
+    "Get the shovels, we're burying this one.",
+    "Time of death: right now.",
+    "Somebody write the eulogy.",
+    "Pour one out for the losing side.",
+    "Flatline.",
+    "More finished than the last page of a book.",
+    "Deader than a dial-up modem.",
+    "Pack it up, pack it in!",
+    "Call the bus driver, they're going home!",
+]
 BENCH = {"BN", "IR", "IR+", "NA"}
 NFL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
 YAHOO_TO_ESPN = {"WAS": "WSH"}       # the one team code the two spell differently
@@ -130,8 +163,10 @@ def most(player: dict, ranks: dict) -> int:
     return TOP_MOST if r is not None and r <= TOP_N else MOST
 
 
-def call(games, rosters, states, ranks, tags) -> list[tuple[str, str]]:
-    """[(game id, line)] for every game that is over."""
+def call(games, rosters, states, ranks, tags) -> list[tuple[str, str, bool]]:
+    """[(game id, line, blowout)] for every game that is over. A blowout cannot
+    finish within BLOWOUT even if the team behind gets its most from everyone left
+    (down 50 with one 30-most player left could end 20 apart: close)."""
     tid = lambda key: key.split(".t.")[-1]   # noqa: E731
     out = []
     for (ka, pa), (kb, pb) in games:
@@ -141,7 +176,8 @@ def call(games, rosters, states, ranks, tags) -> list[tuple[str, str]]:
         left = [p for p in rosters[trail]
                 if states.get(YAHOO_TO_ESPN.get(p["nfl"], p["nfl"])) in ("pre", "in")]
         gap = lp - tp
-        if sum(most(p, ranks) for p in left) >= gap:
+        reach = sum(most(p, ranks) for p in left)
+        if reach >= gap:
             continue
         lt, tt = tags.get(tid(lead), tid(lead)), tags.get(tid(trail), tid(trail))
         line = f"{lt} {lp:.1f}, {tt} {tp:.1f}. "
@@ -150,13 +186,21 @@ def call(games, rosters, states, ranks, tags) -> list[tuple[str, str]]:
         else:
             names = " and ".join(p["name"] for p in left)
             line += f"{tt} trails by {gap:.1f} with only {names} left to play."
-        out.append(("-".join(sorted((tid(ka), tid(kb)))), line))
+        out.append(("-".join(sorted((tid(ka), tid(kb)))), line, gap - reach > BLOWOUT))
     return out
 
 
-def message(lines: list[str]) -> str:
-    head = "This one's over!" if len(lines) == 1 else "These are over!"
-    text = "\n".join([head] + [f"- {x}" for x in lines])
+def message(calls: list[tuple[str, bool]], rng=random) -> str:
+    """One message: each game opens with a tagline from its group (close or
+    blowout), at random, none repeated while the group has fresh ones."""
+    pools = {False: rng.sample(CLOSE, len(CLOSE)), True: rng.sample(BLOWOUTS, len(BLOWOUTS))}
+    lines = []
+    for line, blowout in calls:
+        pool = pools[blowout]
+        if not pool:                                   # more games than taglines: start over
+            pool.extend(rng.sample(BLOWOUTS if blowout else CLOSE, len(BLOWOUTS if blowout else CLOSE)))
+        lines.append(f"{pool.pop()} {line}")
+    text = "\n".join(lines)
     return text if len(text.encode("utf-16-le")) // 2 <= LIMIT else text[:LIMIT - 1] + "…"
 
 
@@ -191,19 +235,20 @@ def main() -> None:
     ranks, tags = season_ranks(a.site, a.league)
     state = json.loads(a.called.read_text(encoding="utf-8")) if a.called and a.called.exists() else {}
     done = set(state.get("games", [])) if state.get("week") == week else set()
-    new = [(gid, line) for gid, line in call(games, rosters, states, ranks, tags) if gid not in done]
+    new = [c for c in call(games, rosters, states, ranks, tags) if c[0] not in done]
 
     a.out.mkdir(parents=True, exist_ok=True)
     for name in ("message.txt", "subject.txt"):
         (a.out / name).unlink(missing_ok=True)
     if new:
-        (a.out / "message.txt").write_text(message([line for _, line in new]), encoding="utf-8")
+        (a.out / "message.txt").write_text(message([(line, blowout) for _, line, blowout in new]),
+                                           encoding="utf-8")
         label = LEAGUES[a.league]["label"]
         (a.out / "subject.txt").write_text(f"{label} week {week}: " + ("this one's over" if len(new) == 1
                                            else f"{len(new)} games over"), encoding="utf-8")
     if a.called:
         a.called.parent.mkdir(parents=True, exist_ok=True)
-        a.called.write_text(json.dumps({"week": week, "games": sorted(done | {g for g, _ in new})}),
+        a.called.write_text(json.dumps({"week": week, "games": sorted(done | {c[0] for c in new})}),
                             encoding="utf-8")
     live = sum(1 for s in states.values() if s == "in")
     print(f"{a.league} week {week}: {len(games)} games, {len(done)} called before, {len(new)} newly over; "
