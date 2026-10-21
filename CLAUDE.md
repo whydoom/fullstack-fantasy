@@ -323,6 +323,7 @@ Actions secret holding the address); each workflow asks it before sending.
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
 | wednesday_waivers | Wed 6:07 ET (6:37, 7:07 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
 | live_final | Sun 3pm-midnight, Mon 7pm-midnight, every 10 min | email, SMTP_USER (testing; then GroupMe) | -- | -- |
+| thursday_first_td | Thu 8pm-midnight, every 10 min | email, SMTP_USER (testing; then GroupMe) | -- | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
 lists the claims for the week after the latest final week, biggest bid first (with lower
@@ -344,6 +345,11 @@ his most -- 50 if top 5 at his position this season, 30 otherwise, in-progress g
 included -- and the leader's players still to play counting for nothing. "Still to
 play" is his NFL game not final on ESPN's public scoreboard; a team on bye is done.
 Each game is called once a week (a cache entry). A live-feed hiccup skips that check.
+
+Thursday first touchdown (`src/notify/first_td.py`, `.github/workflows/thursday-first-td.yml`,
+same Worker clock): the week's first touchdown from ESPN's public scoring plays, "X scored
+this week's first touchdown on a pass from Y.", once a week. Built like the live calls so
+a Thursday proves the chain fires on its own before Sunday.
 
 A new address is a new Actions secret plus its name in the league's `notify`; a
 workflow that sends must also map that secret into its env.

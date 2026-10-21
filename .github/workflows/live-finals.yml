@@ -126,7 +126,7 @@ jobs:
           done < plan.txt
 
       - name: Remember the games called
-        if: steps.send.outputs.sent == 'true'
+        if: steps.send.outputs.sent == 'true' && !inputs.only_me     # a test never counts
         uses: actions/cache/save@v4
         with:
           path: .live-final
