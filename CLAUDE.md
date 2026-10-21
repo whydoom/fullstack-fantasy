@@ -310,7 +310,17 @@ Actions secret holding the address); each workflow asks it before sending.
 | monday_talking_points | Mon 11:07 ET | email, MAIL_TO | -- | -- |
 | tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
-| wednesday_waivers | Wed, after 3am waivers (not built) | GroupMe | email, MAIL_TO_CF | -- |
+| wednesday_waivers | Wed 7:47 ET (8:17, 8:47 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
+
+The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
+lists the claims for the week after the latest final week, biggest bid first (with lower
+bids and the 2nd bid -- ESPN publishes losing claims; Yahoo's come from the league's
+public FAB Offers page, `src/ingest/yahoo_faab_offers.py`; under traditional
+waivers the team's place and lower claims), then the players dropped; one GroupMe
+message (checked under 1,000 characters, claims cut before the dropped list) or an email.
+It sends once per league and week (a cache entry) and nothing when no claim went
+through, so the backup runs retry until the claims are in. "Run workflow" defaults
+to a test: every report emailed to SMTP_USER, nothing posted.
 
 A new address is a new Actions secret plus its name in the league's `notify`; a
 workflow that sends must also map that secret into its env.
