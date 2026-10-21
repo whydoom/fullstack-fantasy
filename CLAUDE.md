@@ -331,7 +331,10 @@ waivers the team's place and lower claims), then the players dropped; one GroupM
 message (checked under 1,000 characters, claims cut before the dropped list) or an email.
 It sends once per league and week (a cache entry) and nothing when no claim went
 through, so the backup runs retry until the claims are in. "Run workflow" defaults
-to a test: every report emailed to SMTP_USER, nothing posted.
+to a test: every report emailed to SMTP_USER, nothing posted. After sending, a scheduled run updates jimoody.com's data (a `refresh-YYYY-wN-waivers`
+PR, data and pages only, which the site merges itself) so its coming-week tab shows the
+waiver summary; by hand only with `update_site`. If it has not merged in 25 minutes,
+SMTP_USER gets an email.
 
 A new address is a new Actions secret plus its name in the league's `notify`; a
 workflow that sends must also map that secret into its env.
