@@ -161,8 +161,11 @@ def fetch_and_land(dataset: str, season: int) -> Path | None:
         # yet 404s. That is an expected state for the current season early in the
         # year, not a failure — the season simply has not been published. Any other
         # connection error is a real problem and must not be swallowed, or a network
-        # outage would look like a successful run that landed nothing.
-        if "404" in str(exc):
+        # outage would look like a successful run that landed nothing -- and so is a
+        # 404 for a past season, which nflverse has published: GitHub's release
+        # downloads answer 404 now and then (2026-10-21, every season of schedules),
+        # and swallowing it left the load with nothing to read.
+        if "404" in str(exc) and is_current:
             return None
         raise
 
