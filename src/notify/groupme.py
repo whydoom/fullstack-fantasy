@@ -23,8 +23,9 @@ def post(text: str) -> None:
     bot = os.environ.get("GROUPME_BOT_ID", "").strip()
     if not bot:
         raise SystemExit("GROUPME_BOT_ID must be set.")
-    if len(text) > LIMIT:
-        raise SystemExit(f"Message is {len(text)} characters; GroupMe takes {LIMIT}.")
+    n = len(text.encode("utf-16-le")) // 2           # as GroupMe counts, at its most cautious
+    if n > LIMIT:
+        raise SystemExit(f"Message is {n} characters; GroupMe takes {LIMIT}.")
     body = json.dumps({"bot_id": bot, "text": text}).encode("utf-8")
     req = urllib.request.Request(GROUPME, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:

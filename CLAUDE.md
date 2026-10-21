@@ -313,9 +313,10 @@ Actions secret holding the address); each workflow asks it before sending.
 | wednesday_waivers | Wed 7:47 ET (8:17, 8:47 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
-lists the claims for the week after the latest final week, biggest bid first, then
-the biggest splash, the most-claimed player (where failed claims are in the data)
-and the most FAAB left; one GroupMe message (under 1,000 characters) or an email.
+lists the claims for the week after the latest final week, biggest bid first (with lower
+bids and the 2nd bid where the platform publishes losing claims; under traditional
+waivers the team's place and lower claims), then the players dropped; one GroupMe
+message (checked under 1,000 characters, claims cut before the dropped list) or an email.
 It sends once per league and week (a cache entry) and nothing when no claim went
 through, so the backup runs retry until the claims are in. "Run workflow" defaults
 to a test: every report emailed to SMTP_USER, nothing posted.

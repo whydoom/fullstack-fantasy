@@ -8,7 +8,12 @@ Reads the league's exported pickups (and claims and FAAB, where the league has
 them) through jimoody.com's own loader, so team tags match the site. The week is
 the one after the latest final week: Wednesday's claims are for the coming games.
 
-Writes DIR/waivers.txt (one GroupMe message, under its 1,000-character cap),
+Each claim: team, player, then the bid -- with how many lower bids and the 2nd-best,
+where the platform publishes losing claims (ESPN) -- or, under traditional
+waivers, the team's place in the standings and how many lower claims. Then the
+players dropped, in one paragraph.
+
+Writes DIR/waivers.txt (one GroupMe message, checked under its 1,000-character cap),
 waivers.html and waivers_subject.txt -- or DIR/none when no waiver claim went
 through that week, so nothing is sent. Prints only counts: the logs are public.
 """
@@ -22,90 +27,97 @@ import sys
 from pathlib import Path
 
 LIMIT = 1000          # GroupMe's cap on one message
-FOOTER = "Every pickup: jimoody.com"
+BOLD = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+                     "".join(chr(0x1D400 + i) for i in range(52)))   # GroupMe has no markup
 
 
-def money(bid):
-    return f"${bid}" if bid else "$0"
+def size(text):
+    """Length as GroupMe counts it, at its most cautious: UTF-16 units, so a bold
+    letter (outside the basic plane) counts twice."""
+    return len(text.encode("utf-16-le")) // 2
 
 
-def report(load, data_path, league, week=None):
-    """(week, header lines, claim lines, footer lines), or (week, None, None, None)
-    when no waiver claim went through. `load`/`data_path` are the site's."""
+def ordinal(n):
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def plural(n, word):
+    return f"{n} {word}{'' if n == 1 else 's'}"
+
+
+def report(site, league, week=None):
+    """(week, header, [claim lines], [players dropped]) -- or (week, None, None, None)
+    when no waiver claim went through. `site` is the site's modules: its loader
+    (team tags) and its standings (places, as the site shows them)."""
+    load, data_path = site["load"], site["data_path"]
     teams = load(league, "team_weeks")["teams"]
+    luck = load(league, "luck")
     if week is None:
-        week = max(int(w) for w in load(league, "luck")["weeks"]) + 1
+        week = max(int(w) for w in luck["weeks"]) + 1
     tag = lambda tid: teams.get(str(tid), {}).get("abbrev", str(tid))   # noqa: E731
 
     pickups = load(league, "pickups")["teams"]
-    claims = [(tid, a) for tid, xs in pickups.items() for a in xs
-              if int(a["week"]) == week and a["source"] == "waivers"]
-    if not claims:
+    won = [(tid, a) for tid, xs in pickups.items() for a in xs
+           if int(a["week"]) == week and a["source"] == "waivers"]
+    if not won:
         return week, None, None, None
-    claims.sort(key=lambda x: (-(x[1]["bid"] or 0), tag(x[0]), x[1]["player"]))
 
-    spent = sum(a["bid"] or 0 for _, a in claims)
-    n = len(claims)
-    head = [f"Week {week} waivers are in: {n} claim{'s' if n != 1 else ''}"
-            + (f", ${spent} spent." if spent else ".")]
-    lines = []
-    for tid, a in claims:
-        bid = f" ({money(a['bid'])})" if spent else ""
-        drop = f", dropped {a['dropped']}" if a.get("dropped") else ""
-        pos = "" if a["pos"] in a["player"] or a["pos"] == "DST" else f" {a['pos']}"   # "Ravens D/ST", "Chiefs"
-        lines.append(f"- {tag(tid)}: {a['player']}{pos}{bid}{drop}")
-
-    foot = []
-    if spent:
-        tid, a = claims[0]
-        foot.append(f"Biggest splash: {tag(tid)}, {money(a['bid'])} on {a['player']}.")
-    # who else wanted him, where the league's failed claims are in the data
+    # every claim, won or lost, where the platform publishes them (ESPN): the
+    # claims that lost to this one, and with FAAB the best of their bids
+    lost, traditional = {}, False
     if data_path(league, "claims").exists():
-        by_player = {}
-        for c in load(league, "claims")["claims"]:
-            if int(c["week"]) == week:
-                by_player.setdefault(c["player"], []).append(c)
-        wanted = [(len({c["team_id"] for c in cs}), p, cs) for p, cs in by_player.items()]
-        wanted = [w for w in wanted if w[0] > 1]
-        if wanted:
-            k, p, cs = max(wanted, key=lambda w: w[0])
-            won = next((c for c in cs if c["won"]), None)
-            foot.append(f"Most wanted: {p}, claimed by {k} teams"
-                        + (f", went to {tag(won['team_id'])}." if won else "."))
-    if data_path(league, "faab").exists():
-        f = load(league, "faab")
-        budget = f.get("budget")
-        if budget:
-            left = {ab: budget - (t.get("counter_spent") or 0) for ab, t in f["teams"].items()}
-            top = max(left, key=left.get)
-            foot.append(f"Most FAAB left: {top}, ${left[top]}.")
-    foot.append(FOOTER)
-    return week, head, lines, foot
+        c = load(league, "claims")
+        traditional = not (c.get("acquisition") or {}).get("uses_budget", True)
+        for x in c["claims"]:
+            if int(x["week"]) == week and x["status"] == "FAILED_INVALIDPLAYERSOURCE":
+                lost.setdefault(x["player"], []).append(x.get("bid") or 0)
+    # traditional waivers go by the standings going into the week: the place shown
+    place = site["places"](league, luck["rows"], week - 1) if traditional else {}
+
+    spent = sum(a["bid"] or 0 for _, a in won)
+    if traditional:
+        won.sort(key=lambda x: (-place.get(str(x[0]), 0), x[1]["player"]))
+    else:
+        won.sort(key=lambda x: (-(x[1]["bid"] or 0), tag(x[0]), x[1]["player"]))
+
+    n = len(won)
+    head = f"Week {week} waivers are in: {plural(n, 'claim')}" + (f", ${spent} spent." if spent else ".")
+    lines, dropped = [], []
+    for tid, a in won:
+        pos = "" if a["pos"] in a["player"] or a["pos"] == "DST" else f" {a['pos']}"   # "Ravens D/ST", "Chiefs"
+        if traditional:
+            what = f" ({ordinal(place[str(tid)])})" if str(tid) in place else ""
+            others = lost.get(a["player"], [])
+            more = f", {plural(len(others), 'lower claim')}" if others else ""
+        else:
+            what = f" (${a['bid'] or 0})" if spent or a["bid"] else ""
+            others = lost.get(a["player"], [])
+            more = f", {plural(len(others), 'lower bid')}, ${max(others)} 2nd" if others else ""
+        lines.append(f"- {tag(tid)}: {a['player']}{pos}{what}{more}")
+        if a.get("dropped"):
+            dropped.append(a["dropped"])
+    return week, head, lines, dropped
 
 
-def as_text(head, lines, foot):
-    """One message under LIMIT: claims are cut from the bottom (smallest bids)
-    with a count, never the header or the footer."""
-    shown = list(lines)
-    while True:
-        more = len(lines) - len(shown)
-        body = head + shown + ([f"- ...and {more} more"] if more else []) + foot
-        text = "\n".join(body)
-        if len(text) <= LIMIT or not shown:
-            return text[:LIMIT]
-        shown.pop()
+def as_text(head, lines, dropped):
+    """One GroupMe message under LIMIT. Claims are cut from the bottom with
+    "...and N more" until it fits; the dropped paragraph is always whole."""
+    tail = (["", "Players dropped".translate(BOLD) + ": " + ", ".join(dropped)] if dropped else [])
+    for keep in range(len(lines), -1, -1):
+        more = len(lines) - keep
+        text = "\n".join([head] + lines[:keep] + ([f"- ...and {more} more"] if more else []) + tail)
+        if size(text) <= LIMIT:
+            return text
+    raise SystemExit("The players-dropped paragraph alone is over GroupMe's limit.")
 
 
-def as_html(subject, head, lines, foot):
+def as_html(subject, head, lines, dropped):
     e = html.escape
     items = "".join(f"<li>{e(x[2:])}</li>" for x in lines)
+    drops = f"<p style='margin:12px 0 0'><b>Players dropped:</b> {e(', '.join(dropped))}</p>" if dropped else ""
     return ("<div style='font-family:Arial,sans-serif;font-size:14px;line-height:1.4'>"
-            f"<h2 style='margin:0 0 8px'>{e(subject)}</h2>"
-            + "".join(f"<p style='margin:0 0 8px'>{e(x)}</p>" for x in head)
-            + f"<ul style='margin:0 0 8px'>{items}</ul>"
-            + "".join(f"<p style='margin:4px 0'>{e(x)}</p>" for x in foot[:-1])
-            + "<p style='color:#666;font-size:12px;margin-top:16px'>Every pickup: "
-              "<a href='https://jimoody.com'>jimoody.com</a></p></div>")
+            f"<h2 style='margin:0 0 8px'>{e(subject)}</h2><p style='margin:0 0 8px'>{e(head)}</p>"
+            f"<ul style='margin:0'>{items}</ul>{drops}</div>")
 
 
 def main() -> None:
@@ -119,8 +131,10 @@ def main() -> None:
     os.environ.setdefault("FFF_PIPELINE_DIR", str(Path(__file__).resolve().parents[2]))
     sys.path.insert(0, str(a.site.resolve()))
     from leagues_site import LEAGUES, data_path, load      # the site's loader: its team tags
+    from standings import places                           # and its standings
 
-    week, head, lines, foot = report(load, data_path, a.league, a.week)
+    week, head, lines, dropped = report({"load": load, "data_path": data_path, "places": places},
+                                        a.league, a.week)
     a.out.mkdir(parents=True, exist_ok=True)
     for name in ("none", "waivers.txt", "waivers.html", "waivers_subject.txt"):
         (a.out / name).unlink(missing_ok=True)
@@ -129,10 +143,12 @@ def main() -> None:
         print(f"{a.league} week {week}: no waiver claims went through; nothing to send", file=sys.stderr)
         return
     subject = f"{LEAGUES[a.league]['label']} week {week}: waivers"
-    (a.out / "waivers.txt").write_text(as_text(head, lines, foot), encoding="utf-8")
-    (a.out / "waivers.html").write_text(as_html(subject, head, lines, foot), encoding="utf-8")
+    text = as_text(head, lines, dropped)
+    assert size(text) <= LIMIT
+    (a.out / "waivers.txt").write_text(text, encoding="utf-8")
+    (a.out / "waivers.html").write_text(as_html(subject, head, lines, dropped), encoding="utf-8")
     (a.out / "waivers_subject.txt").write_text(subject, encoding="utf-8")
-    print(f"{a.league} week {week}: {len(lines)} claims", file=sys.stderr)
+    print(f"{a.league} week {week}: {len(lines)} claims, {size(text)} of {LIMIT} characters", file=sys.stderr)
 
 
 if __name__ == "__main__":
