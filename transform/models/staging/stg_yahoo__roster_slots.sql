@@ -76,7 +76,7 @@ renamed as (
         -- case it cannot see is a player who was active but recorded nothing.
         coalesce(list_count(list_filter(
             json_extract_string(player, '$[*].player_stats.stats[*].stat.value'),
-            v -> v not in ('0', '0.0', '-', ''))) > 0, false)                 as recorded_stats,
+            lambda v: v not in ('0', '0.0', '-', ''))) > 0, false)                 as recorded_stats,
 
         -- Provenance ----------------------------------------------------------
         cast(payload ->> '$._meta.fetched_at' as timestamptz)                 as fetched_at

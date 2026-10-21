@@ -55,7 +55,7 @@ renamed as (
         -- whichever of the pair is not this team.
         list_filter(
             json_extract_string(matchup, '$..team[*][*].team_key'),
-            k -> k <> json_extract_string(team, '$[*][*].team_key')[1]
+            lambda k: k <> json_extract_string(team, '$[*][*].team_key')[1]
         )[1]                                                                  as opponent_team_key,
 
         -- Matchup context -------------------------------------------------------

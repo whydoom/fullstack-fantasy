@@ -310,7 +310,7 @@ Actions secret holding the address); each workflow asks it before sending.
 | monday_talking_points | Mon 11:07 ET | email, MAIL_TO | -- | -- |
 | tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
-| wednesday_waivers | Wed 7:47 ET (8:17, 8:47 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
+| wednesday_waivers | Wed 6:07 ET (6:37, 7:07 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
 lists the claims for the week after the latest final week, biggest bid first (with lower
