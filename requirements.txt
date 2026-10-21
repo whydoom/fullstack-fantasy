@@ -8,6 +8,7 @@ dagster-webserver==1.12.8
 dagster-dbt==0.28.8
 dbt-core==1.10.23
 dbt-duckdb==1.11.0
+duckdb==1.5.5          # pinned: a new DuckDB (2026-10-21) rejected the old lambda arrow and broke CI
 
 requests==2.34.2
 python-dotenv==1.2.3
