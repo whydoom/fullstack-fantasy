@@ -121,10 +121,10 @@ jobs:
           dbt seed --project-dir transform --profiles-dir transform --quiet
           dbt run --project-dir transform --profiles-dir transform --quiet --select             +dim_team_season +fct_roster_slot +fct_matchup +fct_player_rank +fct_team_week_allplay             +fct_transaction +stg_yahoo__roster_positions +stg_yahoo__matchup_teams             +stg_yahoo__team_snapshots +stg_yahoo__transaction_players
           python yahoo_site_export.py > /dev/null
+          # Yahoo's losing bids: only on the league's public FAB Offers page (for the
+          # FAAB chart's second bids and overspend). Without it, no overspend this week.
+          python -m src.ingest.yahoo_faab_offers > /dev/null || echo "Yahoo's FAB Offers page could not be read; no second bids for Yahoo leagues."
           python faab_adn.py > /dev/null
-          # Yahoo's losing bids: only on the league's public FAB Offers page. Without
-          # it the report still goes, just without lower bids for that league.
-          python -m src.ingest.yahoo_faab_offers > /dev/null             || echo "Yahoo's FAB Offers page could not be read; no lower bids for Yahoo leagues this week."
           python pickups_espn.py > /dev/null
           python claims_espn.py > /dev/null
           # what the report reads but the night did not change (team tags, weeks):

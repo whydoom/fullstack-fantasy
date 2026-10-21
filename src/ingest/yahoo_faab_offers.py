@@ -45,7 +45,8 @@ REASONS = {"Lower Offer": "LOST_LOWER_OFFER", "Lower waiver priority": "LOST_LOW
            "Invalid claim due to previous transaction": "FAILED_INVALID"}
 
 ROW = re.compile(r"<tr>(.*?)</tr>", re.S)
-PLAYER = re.compile(r'href="https://sports\.yahoo\.com/nfl/players/(\d+)"[^>]*>([^<]+)</a>\s*'
+# a player links to his page; a defence to its team's ("Broncos", "Den - DEF")
+PLAYER = re.compile(r'href="https://sports\.yahoo\.com/nfl/(?:players|teams)/([^/"]+)/?"[^>]*>([^<]+)</a>\s*'
                     r'<span class="F-position[^"]*">([^<]+)</span>')
 WINNING = re.compile(r"\$(\d+) Winning Offer")
 LOSER = re.compile(r'<p><a href="[^"]*/f1/\d+/(\d+)">[^<]*</a>\s*\$(\d+)\s*\(([^)]+)\)</p>')
@@ -62,7 +63,7 @@ def offers(page_html: str) -> list[dict]:
             continue
         out.append({
             "yahoo_id": p.group(1), "player": html.unescape(p.group(2)).strip(),
-            "pos": p.group(3).split("-")[-1].strip(),
+            "pos": {"DEF": "DST"}.get(p.group(3).split("-")[-1].strip(), p.group(3).split("-")[-1].strip()),
             "winner": a.group(1), "bid": int(w.group(1)), "when": a.group(2).strip(),
             "losers": [(t, int(b), r.strip()) for t, b, r in LOSER.findall(row)],
         })
