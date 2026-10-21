@@ -4,8 +4,8 @@
 # about 3:40, ESPN's about 7:05. 8:17 and 8:47 are backups -- GitHub drops scheduled
 # runs now and then -- and do nothing once a league's report has gone out.
 #
-# Pulls the leagues' transactions fresh (Yahoo through the warehouse, ESPN's pickups
-# and claims straight from ESPN), fills in the rest from what jimoody.com published
+# Pulls the leagues' transactions fresh (Yahoo through the warehouse plus its public
+# FAB Offers page for the losing bids, ESPN's pickups and claims straight from ESPN), fills in the rest from what jimoody.com published
 # Tuesday, and builds the report with src/notify/waivers.py. Sends once per league
 # and week (a cache entry remembers); a week with no claims sends nothing.
 #
@@ -126,6 +126,9 @@ jobs:
           dbt run --project-dir transform --profiles-dir transform --exclude "source:raw_espn+" --quiet
           python yahoo_site_export.py > /dev/null
           python faab_adn.py > /dev/null
+          # Yahoo's losing bids: only on the league's public FAB Offers page. Without
+          # it the report still goes, just without lower bids for that league.
+          python -m src.ingest.yahoo_faab_offers > /dev/null             || echo "Yahoo's FAB Offers page could not be read; no lower bids for Yahoo leagues this week."
           python pickups_espn.py > /dev/null
           python claims_espn.py > /dev/null
           # what the report reads but the night did not change (team tags, weeks):

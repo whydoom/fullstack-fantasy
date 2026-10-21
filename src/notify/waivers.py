@@ -31,6 +31,12 @@ BOLD = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
                      "".join(chr(0x1D400 + i) for i in range(52)))   # GroupMe has no markup
 
 
+# a claim that lost to the winning one: ESPN's FAILED_INVALIDPLAYERSOURCE, Yahoo's
+# "Lower Offer" / "Lower waiver priority" (src/ingest/yahoo_faab_offers.py). A void
+# claim (Yahoo's "Invalid claim due to previous transaction") was no competing bid.
+LOST = {"FAILED_INVALIDPLAYERSOURCE", "LOST_LOWER_OFFER", "LOST_LOWER_PRIORITY"}
+
+
 def size(text):
     """Length as GroupMe counts it, at its most cautious: UTF-16 units, so a bold
     letter (outside the basic plane) counts twice."""
@@ -69,7 +75,7 @@ def report(site, league, week=None):
         c = load(league, "claims")
         traditional = not (c.get("acquisition") or {}).get("uses_budget", True)
         for x in c["claims"]:
-            if int(x["week"]) == week and x["status"] == "FAILED_INVALIDPLAYERSOURCE":
+            if x["week"] is not None and int(x["week"]) == week and x["status"] in LOST:
                 lost.setdefault(x["player"], []).append(x.get("bid") or 0)
     # traditional waivers go by the standings going into the week: the place shown
     place = site["places"](league, luck["rows"], week - 1) if traditional else {}

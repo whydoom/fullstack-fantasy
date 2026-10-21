@@ -314,7 +314,8 @@ Actions secret holding the address); each workflow asks it before sending.
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
 lists the claims for the week after the latest final week, biggest bid first (with lower
-bids and the 2nd bid where the platform publishes losing claims; under traditional
+bids and the 2nd bid -- ESPN publishes losing claims; Yahoo's come from the league's
+public FAB Offers page, `src/ingest/yahoo_faab_offers.py`; under traditional
 waivers the team's place and lower claims), then the players dropped; one GroupMe
 message (checked under 1,000 characters, claims cut before the dropped list) or an email.
 It sends once per league and week (a cache entry) and nothing when no claim went
