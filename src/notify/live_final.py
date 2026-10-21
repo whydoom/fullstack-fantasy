@@ -53,23 +53,23 @@ CLOSE = [
     "Lock it up, throw away the key.",
     "We're done here, folks!",
     "Dormie and dead.",
+    "Turn out the lights, the party's over.",
+    "Time of death: right now.",
+    "Somebody write the eulogy.",
+    "Pour one out for the losing side.",
+    "More finished than the last page of a book.",
+    "Pack it up, pack it in!",
+    "Call the bus driver, they're going home!",
 ]
 BLOWOUTS = [
-    "Turn out the lights, the party's over.",
     "Start the buses.",
     "Somebody check the pulse, because I'm not finding one.",
     "The fat lady isn't just singing, she's taking her bows.",
     "This game is toast, and someone left it in way too long.",
     "This one's more well-done than a steak that a sloth is cooking.",
     "Get the shovels, we're burying this one.",
-    "Time of death: right now.",
-    "Somebody write the eulogy.",
-    "Pour one out for the losing side.",
     "Flatline.",
-    "More finished than the last page of a book.",
     "Deader than a dial-up modem.",
-    "Pack it up, pack it in!",
-    "Call the bus driver, they're going home!",
 ]
 BENCH = {"BN", "IR", "IR+", "NA"}
 NFL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
