@@ -8,9 +8,10 @@ Reads the league's exported pickups (and claims and FAAB, where the league has
 them) through jimoody.com's own loader, so team tags match the site. The week is
 the one after the latest final week: Wednesday's claims are for the coming games.
 
-Each claim: team, player, then the bid -- with how many lower bids and the 2nd-best,
-where the platform publishes losing claims (ESPN) -- or, under traditional
-waivers, the team's place in the standings and how many lower claims. Then the
+The header counts the contested claims (another team claimed him too), all claims
+and the dollars spent. Each claim: team, player, then the bid -- and, when contested,
+how many lower bids and the 2nd-highest with whose it was -- or, under traditional
+waivers, the team's place in the standings and the teams with lower claims. Then the
 players dropped, in one paragraph.
 
 Writes DIR/waivers.txt (one GroupMe message, checked under its 1,000-character cap),
@@ -76,7 +77,7 @@ def report(site, league, week=None):
         traditional = not (c.get("acquisition") or {}).get("uses_budget", True)
         for x in c["claims"]:
             if x["week"] is not None and int(x["week"]) == week and x["status"] in LOST:
-                lost.setdefault(x["player"], []).append(x.get("bid") or 0)
+                lost.setdefault(x["player"], []).append((x.get("bid") or 0, x["team_id"]))
     # traditional waivers go by the standings going into the week: the place shown
     place = site["places"](league, luck["rows"], week - 1) if traditional else {}
 
@@ -87,19 +88,23 @@ def report(site, league, week=None):
         won.sort(key=lambda x: (-(x[1]["bid"] or 0), tag(x[0]), x[1]["player"]))
 
     n = len(won)
-    head = f"Week {week} waivers are in: {plural(n, 'claim')}" + (f", ${spent} spent." if spent else ".")
+    contested = sum(1 for _, a in won if lost.get(a["player"]))
+    head = (f"Week {week} Waivers are in: {plural(contested, 'contested claim')}, {plural(n, 'total claim')}"
+            + (f", ${spent} spent in total." if spent else "."))
     lines, dropped = [], []
     for tid, a in won:
         pos = "" if a["pos"] in a["player"] or a["pos"] == "DST" else f" {a['pos']}"   # "Ravens D/ST", "Chiefs"
+        others = lost.get(a["player"], [])
         if traditional:
             what = f" ({ordinal(place[str(tid)])})" if str(tid) in place else ""
-            others = lost.get(a["player"], [])
-            more = f", {plural(len(others), 'lower claim')}" if others else ""
+            more = (f", {plural(len(others), 'lower claim')} ({', '.join(tag(t) for _, t in others)})"
+                    if others else "")
         else:
             what = f" (${a['bid'] or 0})" if spent or a["bid"] else ""
-            others = lost.get(a["player"], [])
-            more = f", {plural(len(others), 'lower bid')}, ${max(others)} 2nd" if others else ""
-        lines.append(f"- {tag(tid)}: {a['player']}{pos}{what}{more}")
+            # the second-highest bid and whose it was (the first listed wins a tie)
+            bid2, team2 = max(others, key=lambda o: o[0]) if others else (None, None)
+            more = f", {plural(len(others), 'lower bid')}, ${bid2} ({tag(team2)})" if others else ""
+        lines.append(f"{tag(tid)}: {a['player']}{pos}{what}{more}.")
         if a.get("dropped"):
             dropped.append(a["dropped"])
     return week, head, lines, dropped
@@ -111,7 +116,7 @@ def as_text(head, lines, dropped):
     tail = (["", "Players dropped".translate(BOLD) + ": " + ", ".join(dropped)] if dropped else [])
     for keep in range(len(lines), -1, -1):
         more = len(lines) - keep
-        text = "\n".join([head] + lines[:keep] + ([f"- ...and {more} more"] if more else []) + tail)
+        text = "\n".join([head] + lines[:keep] + ([f"...and {more} more"] if more else []) + tail)
         if size(text) <= LIMIT:
             return text
     raise SystemExit("The players-dropped paragraph alone is over GroupMe's limit.")
@@ -119,7 +124,7 @@ def as_text(head, lines, dropped):
 
 def as_html(subject, head, lines, dropped):
     e = html.escape
-    items = "".join(f"<li>{e(x[2:])}</li>" for x in lines)
+    items = "".join(f"<li>{e(x)}</li>" for x in lines)
     drops = f"<p style='margin:12px 0 0'><b>Players dropped:</b> {e(', '.join(dropped))}</p>" if dropped else ""
     return ("<div style='font-family:Arial,sans-serif;font-size:14px;line-height:1.4'>"
             f"<h2 style='margin:0 0 8px'>{e(subject)}</h2><p style='margin:0 0 8px'>{e(head)}</p>"

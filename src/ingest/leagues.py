@@ -40,7 +40,7 @@ from __future__ import annotations
 #   tuesday_congrats        after the Tuesday refresh: congrats to the week's winners
 #   tuesday_recap           after the Tuesday refresh: the week in review (recap.tuesday)
 #   wednesday_waivers       Wednesday, after waivers clear
-#   live_final              Sunday afternoon to Monday night: a game called over
+#   live_final              Sunday afternoon and night: a game called over
 #                           as soon as it is decided (src/notify/live_final.py)
 #   thursday_first_td       Thursday night: the week's first touchdown, and who
 #                           threw it (src/notify/first_td.py)
@@ -63,9 +63,8 @@ LEAGUES = {
             "monday_talking_points": {"via": "email", "to": "MAIL_TO"},
             "tuesday_congrats": {"via": "groupme", "to": "GROUPME_BOT_ID"},
             "wednesday_waivers": {"via": "groupme", "to": "GROUPME_BOT_ID"},
-            # testing by email to Justin; switch to {"via": "groupme", "to": "GROUPME_BOT_ID"}
-            "live_final": {"via": "email", "to": "SMTP_USER"},
-            "thursday_first_td": {"via": "email", "to": "SMTP_USER"},   # testing, as live_final
+            "live_final": {"via": "groupme", "to": "GROUPME_BOT_ID"},
+            "thursday_first_td": {"via": "groupme", "to": "GROUPME_BOT_ID"},
         },
     },
     "college-forever": {
