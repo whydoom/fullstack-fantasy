@@ -322,7 +322,7 @@ Actions secret holding the address); each workflow asks it before sending.
 | tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
 | wednesday_waivers | Wed 6:07 ET (6:37, 7:07 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
-| live_final | Sun 3pm-midnight, Mon 7pm-midnight, every 10 min | GroupMe, GROUPME_BOT_ID | -- | -- |
+| live_final | Sun 3pm-midnight, every 10 min (not Monday: the talking points and Tuesday's congrats cover it) | GroupMe, GROUPME_BOT_ID | -- | -- |
 | thursday_first_td | Thu 8pm-midnight, every 10 min | GroupMe, GROUPME_BOT_ID | -- | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)

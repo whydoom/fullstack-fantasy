@@ -2,7 +2,8 @@
 # (src/ingest/leagues.py notify): GroupMe or email.
 #
 # Started every 10 minutes by jimoody.com's Cloudflare Worker while a game can end:
-# Sunday 3pm to midnight and Monday 7pm to midnight, Eastern. Each check reads the
+# Sunday 3pm to midnight, Eastern (Monday night's games are left to the Monday
+# talking points and Tuesday's congrats). Each check reads the
 # live Yahoo scoreboard and starters and ESPN's public NFL scoreboard, calls every
 # game the team behind can no longer win (src/notify/live_final.py: 50 most for a
 # top-5 player at his position still to play, 30 otherwise, the leader's players
@@ -18,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       any_time:
-        description: "Run outside the Sunday/Monday windows (a test)"
+        description: "Run outside Sunday afternoon and night (a test)"
         type: boolean
         default: false
       only_me:
@@ -49,7 +50,7 @@ jobs:
         run: |
           day=$(TZ=America/New_York date +%a); hour=$(TZ=America/New_York date +%H)
           if [ "${{ inputs.any_time }}" != "true" ] && \
-             ! { [ "$day" = "Sun" ] && [ "$hour" -ge 15 ]; } && ! { [ "$day" = "Mon" ] && [ "$hour" -ge 19 ]; }; then
+             ! { [ "$day" = "Sun" ] && [ "$hour" -ge 15 ]; }; then
             echo "$day ${hour}h Eastern: no game can end now."; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
           python3 -m src.notify.plan live_final > plan.txt
