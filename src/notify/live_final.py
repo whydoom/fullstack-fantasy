@@ -8,8 +8,8 @@ players still to play scores his most:
 
   - a player is still to play until his NFL team's game is final (in progress
     counts as still to play, at his full most);
-  - his most is 50 if he is top 5 at his position this season (jimoody.com's
-    season ranks), 30 otherwise;
+  - his most: any QB 50; a WR, RB, TE or K 50 if top 5 at his position this
+    season (jimoody.com's season ranks), 35 otherwise; any defence or IDP 25;
   - the leading team's players still to play count for nothing: it is much easier
     to score 0 than 50.
 
@@ -74,7 +74,12 @@ BLOWOUTS = [
 BENCH = {"BN", "IR", "IR+", "NA"}
 NFL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
 YAHOO_TO_ESPN = {"WAS": "WSH"}       # the one team code the two spell differently
-TOP_N, TOP_MOST, MOST = 5, 50, 30
+TOP_N = 5
+# The most a player still to play could add, by position (Justin's numbers): any QB
+# 50; a WR, RB, TE or K 50 if top 5 at his position this season, 35 otherwise; any
+# defence or IDP 25.
+MOST_QB, MOST_TOP, MOST_SKILL, MOST_DEFENCE = 50, 50, 35, 25
+IDP = {"D", "DL", "DB", "LB", "DE", "DT", "CB", "S", "IDP"}
 
 
 def flat(node) -> dict:
@@ -141,8 +146,11 @@ def starters(client, team_key: str, week: int) -> list[dict]:
         slot = next((x["position"] for x in f.get("selected_position", []) if "position" in x), "BN")
         if slot in BENCH:
             continue
+        shown = (f.get("display_position") or "").split(",")
+        group = ("DST" if "DEF" in shown or slot in ("DEF", "D/ST") else
+                 "IDP" if slot in IDP or shown[0] in IDP else shown[0])    # "WR,CB" started at WR: WR
         out.append({"key": f["player_key"], "name": f.get("name", {}).get("full", "?"),
-                    "nfl": f.get("editorial_team_abbr", "").upper(),
+                    "nfl": f.get("editorial_team_abbr", "").upper(), "pos": group,
                     "pts": float((f.get("player_points") or {}).get("total") or 0)})
     return out
 
@@ -159,8 +167,13 @@ def season_ranks(site: Path, league: str) -> tuple[dict, dict]:
 
 
 def most(player: dict, ranks: dict) -> int:
+    pos = player.get("pos")
+    if pos == "QB":
+        return MOST_QB
+    if pos in ("DST", "IDP"):
+        return MOST_DEFENCE
     r = ranks.get(player["key"])
-    return TOP_MOST if r is not None and r <= TOP_N else MOST
+    return MOST_TOP if r is not None and r <= TOP_N else MOST_SKILL
 
 
 def call(games, rosters, states, ranks, tags) -> list[tuple[str, str, bool]]:

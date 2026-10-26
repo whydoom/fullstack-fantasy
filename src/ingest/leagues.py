@@ -63,9 +63,8 @@ LEAGUES = {
             "monday_talking_points": {"via": "email", "to": "MAIL_TO"},
             "tuesday_congrats": {"via": "groupme", "to": "GROUPME_BOT_ID"},
             "wednesday_waivers": {"via": "groupme", "to": "GROUPME_BOT_ID"},
-            # testing by email to Justin; switch to {"via": "groupme", "to": "GROUPME_BOT_ID"}
-            "live_final": {"via": "email", "to": "SMTP_USER"},
-            "thursday_first_td": {"via": "email", "to": "SMTP_USER"},   # testing, as live_final
+            "live_final": {"via": "groupme", "to": "GROUPME_BOT_ID"},
+            "thursday_first_td": {"via": "groupme", "to": "GROUPME_BOT_ID"},
         },
     },
     "college-forever": {

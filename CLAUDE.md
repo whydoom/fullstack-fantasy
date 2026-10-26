@@ -322,8 +322,8 @@ Actions secret holding the address); each workflow asks it before sending.
 | tuesday_congrats | after the refresh merges | GroupMe, GROUPME_BOT_ID | -- | -- |
 | tuesday_recap | after the refresh merges | -- | email, MAIL_TO_CF | -- |
 | wednesday_waivers | Wed 6:07 ET (6:37, 7:07 backups) | GroupMe, GROUPME_BOT_ID | email, MAIL_TO_CF | -- |
-| live_final | Sun 3pm-midnight, Mon 7pm-midnight, every 10 min | email, SMTP_USER (testing; then GroupMe) | -- | -- |
-| thursday_first_td | Thu 8pm-midnight, every 10 min | email, SMTP_USER (testing; then GroupMe) | -- | -- |
+| live_final | Sun 3pm-midnight, Mon 7pm-midnight, every 10 min | GroupMe, GROUPME_BOT_ID | -- | -- |
+| thursday_first_td | Thu 8pm-midnight, every 10 min | GroupMe, GROUPME_BOT_ID | -- | -- |
 
 The waivers report (`src/notify/waivers.py`, `.github/workflows/wednesday-waivers.yml`)
 lists the claims for the week after the latest final week, biggest bid first (with lower
@@ -341,8 +341,8 @@ SMTP_USER gets an email.
 Live calls (`src/notify/live_final.py`, `.github/workflows/live-finals.yml`, started
 every 10 minutes by jimoody.com's Cloudflare Worker inside the windows): a game is
 over when the team behind cannot catch up with every player still to play scoring
-his most -- 50 if top 5 at his position this season, 30 otherwise, in-progress games
-included -- and the leader's players still to play counting for nothing. "Still to
+his most -- any QB 50; a WR, RB, TE or K 50 if top 5 at his position this season,
+35 otherwise; any defence or IDP 25; in-progress games included -- and the leader's players still to play counting for nothing. "Still to
 play" is his NFL game not final on ESPN's public scoreboard; a team on bye is done.
 Each game is called once a week (a cache entry). A live-feed hiccup skips that check.
 
