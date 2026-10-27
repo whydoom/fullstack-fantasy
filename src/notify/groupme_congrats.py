@@ -50,7 +50,7 @@ def winners(site: Path, league: str):
 def message(week, wins):
     lines = [f"Week {week} is in the books. Congrats to this week's winners:"]
     lines += [f"- {w} ({name}) {pts:.1f} to {opp_pts:.1f} over {opp}" for w, name, pts, opp, opp_pts in wins]
-    lines.append("Every game, every bullet: jimoody.com")
+    lines.append(f"Website is updated through Week {week}.")     # a mention, not a link
     text = "\n".join(lines)
     return text if len(text) <= LIMIT else text[:LIMIT - 1] + "…"
 
