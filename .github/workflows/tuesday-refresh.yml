@@ -1,5 +1,5 @@
 # The Tuesday refresh, in the cloud: every league's final week, onto jimoody.com as a
-# pull request, at 11:17 Eastern every Tuesday of the season. No PC needs to be on.
+# pull request, at 8:17 Eastern every Tuesday of the season. No PC needs to be on.
 #
 # Pulls ADN from Yahoo, College Forever and Carrboro from ESPN and the plays from
 # nflverse, builds the warehouse, runs every export, then in a checkout of
@@ -26,13 +26,15 @@
 name: Tuesday refresh
 
 on:
-  # GitHub's clock is UTC: 11:17 Eastern is 15:17 UTC in daylight time and 16:17 UTC
+  # nflverse finishes Monday night's game by about 7:20 Eastern (play-by-play 6:51, snap
+  # counts 7:08, player stats 7:16 on 2026-10-27), so 8:17 leaves an hour.
+  # GitHub's clock is UTC: 8:17 Eastern is 12:17 UTC in daylight time and 13:17 UTC
   # in standard time. Both fire; the first step lets only this half of the year's run.
   # Off the hour on purpose: GitHub delays or drops scheduled runs at :00, its busiest.
   # Scheduled runs can start 10-20 minutes late.
   schedule:
-    - cron: "17 15 * * 2"
-    - cron: "17 16 * * 2"
+    - cron: "17 12 * * 2"
+    - cron: "17 13 * * 2"
   workflow_dispatch:
     inputs:
       open_pr:
@@ -66,7 +68,7 @@ jobs:
       ESPN_SWID_FL: ${{ secrets.ESPN_SWID_FL }}
       PYTHONUTF8: "1"
     steps:
-      - name: Only at 11:17 Eastern
+      - name: Only at 8:17 Eastern
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
@@ -83,9 +85,9 @@ jobs:
             fi
           fi
           # Which cron fired, not the clock: a scheduled run can start late, so the
-          # 15:17 UTC one is for daylight time (UTC-4) and the 16:17 one for standard.
+          # 12:17 UTC one is for daylight time (UTC-4) and the 13:17 one for standard.
           offset=$(TZ=America/New_York date +%z)
-          want="17 16 * * 2"; [ "$offset" = "-0400" ] && want="17 15 * * 2"
+          want="17 13 * * 2"; [ "$offset" = "-0400" ] && want="17 12 * * 2"
           if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" != "$want" ]; then
             echo "This cron is for the other half of the year; the other one runs this week."
             echo "go=false" >> "$GITHUB_OUTPUT"
