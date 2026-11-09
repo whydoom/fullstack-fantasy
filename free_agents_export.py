@@ -14,9 +14,10 @@ have had nobody to start in a slot.
          in the league's scoring, every position.
   Yahoo  actual points from the weekly player pool (stg_yahoo__player_pool);
          projections from fct_player_week_projection (ESPN's projection re-scored
-         with the league's rules) through player_names.csv -- QB, RB, WR, TE. A
+         with the league's rules) through player_names.csv -- QB, RB, WR, TE, and
+         only players with a projection that week (none: bye, hurt or out). A
          kicker, defence or IDP, which ESPN does not project here, gets his own
-         average of the weeks before (as matchups_export.py does).
+         average of the weeks before, and only if he scored that week.
 
 Writes data/processed/{league}/{platform}_free_agents.json:
 
@@ -76,7 +77,7 @@ def espn_weeks(key: str, season: int, weeks: list[str], held: dict) -> dict:
             got = {(s.get("statSourceId"), s.get("statSplitTypeId")): s.get("appliedTotal")
                    for s in p.get("stats") or [] if s.get("scoringPeriodId") == int(w)}
             proj, pts = got.get((1, 1)), got.get((0, 1))
-            if proj is None:
+            if not proj:                       # no projection (bye, out): not a player to claim
                 continue
             rows.append({"id": str(p["id"]), "name": p.get("fullName"), "pos": pos,
                          "proj": round(float(proj), 2), "pts": round(float(pts or 0), 2)})
@@ -109,10 +110,14 @@ def yahoo_weeks(key: str, weeks: list[str], held: dict) -> dict:
         for yid, (name, pos, pts) in by_week.get(w, {}).items():
             if yid in held[w]:
                 continue
-            p = proj.get((int(w), gsis.get(yid))) if pos in ("QB", "RB", "WR", "TE") else None
-            if p is None:                                 # K / DST / IDP, or unprojected: his average so far
+            if pos in ("QB", "RB", "WR", "TE"):
+                # no projection that week: on bye, hurt or out -- not a player to claim
+                p = proj.get((int(w), gsis.get(yid)))
+            else:
+                # K / DST / IDP: his average so far, and only if he scored that week
+                # (a 0 here is most often a bye or a game missed)
                 before = [x for wk, x in history[yid].items() if wk < int(w)]
-                p = sum(before) / len(before) if before else None
+                p = sum(before) / len(before) if before and pts != 0 else None
             if p is None:
                 continue
             rows.append({"id": yid, "name": name, "pos": pos, "proj": round(float(p), 2), "pts": round(pts, 2)})
