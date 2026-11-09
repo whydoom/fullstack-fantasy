@@ -18,6 +18,12 @@
 --   lateral     the player a receiver / rusher pitched to: his own yards and the
 --               TD if he scored it (no reception)
 --   rusher      rushing yards; a rushing TD (he scored it)
+--   mistakes    the passer an interception thrown (and a pick six, when it is
+--               returned for a TD); the player who fumbled a fumble lost on a pass
+--               or run (sacks included), as the box score counts them
+--   2-pt        a successful two-point try: the passer, the receiver or the rusher
+--   40+ yards   a completion of 40+ yards for the passer and the receiver, a run of
+--               40+ for the rusher (ADN's long-play bonuses; the others score 0)
 --   returner    a kick / punt return TD scored by the play's returner (on a punt
 --               nflverse puts the returner on the "defense" side, so the returner
 --               column -- not the team -- decides it)
@@ -88,6 +94,41 @@ credits as (
     select game_id, play_id, touchdown_player_id, 'return_td', 1
       from plays where is_return_touchdown
         and touchdown_player_id in (kickoff_returner_player_id, punt_returner_player_id)
+
+    -- mistakes
+    union all
+    select game_id, play_id, passer_player_id, 'pass_int', 1
+      from plays where passer_player_id is not null and is_interception
+    union all
+    select game_id, play_id, passer_player_id, 'pick_six', 1
+      from plays where passer_player_id is not null and is_interception
+        and is_return_touchdown and touchdown_team = defense_team
+    union all
+    select game_id, play_id, fumbled_1_player_id, 'fumble_lost', 1
+      from plays where is_fumble_lost and fumbled_1_player_id is not null
+        and fumbled_1_team = offense_team and play_type in ('pass', 'run')
+
+    -- two-point conversions
+    union all
+    select game_id, play_id, passer_player_id, 'two_pt_pass', 1
+      from plays where is_two_point_attempt and two_point_conv_result = 'success' and passer_player_id is not null
+    union all
+    select game_id, play_id, receiver_player_id, 'two_pt_rec', 1
+      from plays where is_two_point_attempt and two_point_conv_result = 'success' and receiver_player_id is not null
+    union all
+    select game_id, play_id, rusher_player_id, 'two_pt_rush', 1
+      from plays where is_two_point_attempt and two_point_conv_result = 'success' and rusher_player_id is not null
+
+    -- long plays (40+ yards)
+    union all
+    select game_id, play_id, passer_player_id, 'pass_40', 1
+      from plays where passer_player_id is not null and is_complete and passing_yards >= 40
+    union all
+    select game_id, play_id, receiver_player_id, 'rec_40', 1
+      from plays where receiver_player_id is not null and is_complete and receiving_yards >= 40
+    union all
+    select game_id, play_id, rusher_player_id, 'rush_40', 1
+      from plays where rusher_player_id is not null and rushing_yards >= 40
 
     -- defence
     union all
@@ -189,6 +230,15 @@ per_player as (
         sum(value) filter (where stat = 'reception')            as reception,
         sum(value) filter (where stat = 'rec_td')               as rec_td,
         sum(value) filter (where stat = 'return_td')            as return_td,
+        sum(value) filter (where stat = 'pass_int')             as pass_int,
+        sum(value) filter (where stat = 'pick_six')             as pick_six,
+        sum(value) filter (where stat = 'fumble_lost')          as fumble_lost,
+        sum(value) filter (where stat = 'two_pt_pass')          as two_pt_pass,
+        sum(value) filter (where stat = 'two_pt_rec')           as two_pt_rec,
+        sum(value) filter (where stat = 'two_pt_rush')          as two_pt_rush,
+        sum(value) filter (where stat = 'pass_40')              as pass_40,
+        sum(value) filter (where stat = 'rec_40')               as rec_40,
+        sum(value) filter (where stat = 'rush_40')              as rush_40,
         sum(value) filter (where stat = 'idp_tackle_solo')      as idp_tackle_solo,
         sum(value) filter (where stat = 'idp_tackle_assist')    as idp_tackle_assist,
         sum(value) filter (where stat = 'idp_tackle_for_loss')  as idp_tackle_for_loss,
