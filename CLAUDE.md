@@ -310,6 +310,16 @@ refreshed twice; the job still runs by hand.
   waivers report into lower bids. Run after `yahoo_site_export.py`, before
   `faab_adn.py`. If the league stops being publicly viewable, there are no second bids.
 
+### The best free agents each week (`free_agents_export.py`)
+
+`{platform}_free_agents.json`: for each final week and position, the top 8 players on
+no roster that week by projection, with their projection and actual points in the
+league's scoring. ESPN leagues read the weekly player pools (projection and actual);
+ADN reads Yahoo's weekly pool for actuals and `fct_player_week_projection` for QB /
+RB / WR / TE projections (a K, DST or IDP: his average of the weeks before).
+jimoody.com's Trades section claims from it when a team, without a trade, would have
+had nobody to start in a slot. Runs in the Tuesday refresh after the other exports.
+
 ### Scheduled sends, per league (`notify` in `src/ingest/leagues.py`)
 
 Each league lists the sends it gets; one left out is off. `python -m
