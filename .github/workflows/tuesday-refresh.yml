@@ -185,6 +185,7 @@ jobs:
           python matchups_export.py > /dev/null
           python schedule_export.py > /dev/null      # next week's pairings, for Matchups
           python free_agents_export.py > /dev/null  # the best free agents each week, for Trades
+          python draft_export.py > /dev/null        # each league's draft, for Draft Grades
 
       - name: Render jimoody.com
         if: steps.gate.outputs.go == 'true'
