@@ -90,7 +90,7 @@ LEAGUES = {
         "platform": "espn",
         "league_id": "142788",
         "creds": "FL",
-        "label": "Carrboro",
+        "label": "Da League",
         "page": "carrboro.html",
         "median_game": True,
         "highlight": "MURT",
