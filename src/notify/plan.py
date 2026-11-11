@@ -14,7 +14,7 @@ import sys
 from src.ingest.leagues import LEAGUES
 
 SENDS = ("monday_talking_points", "tuesday_congrats", "tuesday_recap", "wednesday_waivers",
-         "live_final", "thursday_first_td")
+         "live_final", "thursday_first_td", "trade_alert")
 
 
 def on(send: str) -> list[tuple[str, dict]]:
