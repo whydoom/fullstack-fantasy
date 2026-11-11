@@ -1,0 +1,113 @@
+# A completed trade, to the GroupMe of each league with trade_alert on (src/ingest/
+# leagues.py notify): "Trade! COBE gets ...; BRO gets ...". Yahoo leagues only; trade
+# proposals are private to the two managers, so only trades that went through.
+#
+# Started by jimoody.com's Cloudflare Worker at 7am, noon, 5pm and 10pm Eastern (none
+# overnight). Each run is two Yahoo requests and under a minute. A cache entry keeps
+# the trades already posted, and only trades from the last 36 hours are ever posted,
+# so a missed or doubled run never posts one twice or posts an old one.
+# Secrets: the Yahoo app and token, SITE_REPO_TOKEN (team tags), GROUPME_BOT_ID.
+# Public logs: counts only.
+name: Trade alert
+
+on:
+  workflow_dispatch:
+    inputs:
+      only_me:
+        description: "Email it to SMTP_USER instead of GroupMe (a test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trade-alert
+  cancel-in-progress: false
+
+jobs:
+  trades:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FFF_PIPELINE_DIR: ${{ github.workspace }}
+      YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+      YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Leagues with this send on
+        id: gate
+        run: |
+          python3 -m src.notify.plan trade_alert > plan.txt
+          if [ ! -s plan.txt ]; then echo "No league has trade_alert on."; echo "go=false" >> "$GITHUB_OUTPUT"
+          else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Check out jimoody.com
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: whydoom/jimoody.com
+          token: ${{ secrets.SITE_REPO_TOKEN }}
+          path: site
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install (only what this needs)
+        if: steps.gate.outputs.go == 'true'
+        run: pip install -q requests==2.34.2 python-dotenv==1.2.3     # as in requirements.txt
+
+      - name: Yahoo token
+        if: steps.gate.outputs.go == 'true'
+        env:
+          YAHOO_TOKEN_JSON: ${{ secrets.YAHOO_TOKEN_JSON }}
+        run: |
+          mkdir -p .secrets
+          printf '%s' "$YAHOO_TOKEN_JSON" > .secrets/token.json
+          chmod 600 .secrets/token.json
+          python -m src.ingest.discover > /dev/null
+
+      - name: Trades already posted
+        if: steps.gate.outputs.go == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .trades
+          key: trade-alert-${{ github.run_id }}
+          restore-keys: trade-alert-
+
+      - name: Find and send
+        id: send
+        if: steps.gate.outputs.go == 'true'
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          GROUPME_BOT_ID: ${{ secrets.GROUPME_BOT_ID }}
+          ONLY_ME: ${{ github.event_name == 'workflow_dispatch' && inputs.only_me }}
+        run: |
+          while read -r league via secret; do
+            python -m src.notify.trade_alert --site site --league "$league" \
+              --seen ".trades/$league.json" --out "out/$league" < /dev/null
+            [ -f "out/$league/message.txt" ] || continue
+            if [ "$ONLY_ME" = "true" ] || [ "$via" = "email" ]; then
+              to="$SMTP_USER"; [ "$ONLY_ME" = "true" ] || to="${!secret}"
+              echo "Trade" > "out/$league/subject.txt"
+              MAIL_TO="$to" MAIL_CC="" python -m src.notify.send_email --subject-file "out/$league/subject.txt" \
+                --html "out/$league/message.txt" --text "out/$league/message.txt" < /dev/null
+            elif [ "$via" = "groupme" ]; then
+              python -m src.notify.groupme --text-file "out/$league/message.txt" < /dev/null
+            fi
+            echo "$league: sent by $([ "$ONLY_ME" = "true" ] && echo test-email || echo "$via")"
+            echo "sent=true" >> "$GITHUB_OUTPUT"
+          done < plan.txt
+
+      # a new entry each run (a few bytes; GitHub drops entries unused for a week)
+      - name: Remember what was posted
+        if: steps.gate.outputs.go == 'true' && !inputs.only_me
+        uses: actions/cache/save@v4
+        with:
+          path: .trades
+          key: trade-alert-${{ github.run_id }}

@@ -44,6 +44,8 @@ from __future__ import annotations
 #                           as soon as it is decided (src/notify/live_final.py)
 #   thursday_first_td       Thursday night: the week's first touchdown, and who
 #                           threw it (src/notify/first_td.py)
+#   trade_alert             7am, noon, 5pm, 10pm ET: a completed trade (Yahoo
+#                           leagues; src/notify/trade_alert.py)
 # Each is {"via": "email" | "groupme", "to": the Actions secret holding the address
 # or bot id}. Addresses never live here: this repo is public.
 LEAGUES = {
@@ -65,6 +67,7 @@ LEAGUES = {
             "wednesday_waivers": {"via": "groupme", "to": "GROUPME_BOT_ID"},
             "live_final": {"via": "groupme", "to": "GROUPME_BOT_ID"},
             "thursday_first_td": {"via": "groupme", "to": "GROUPME_BOT_ID"},
+            "trade_alert": {"via": "groupme", "to": "GROUPME_BOT_ID"},
         },
     },
     "college-forever": {
