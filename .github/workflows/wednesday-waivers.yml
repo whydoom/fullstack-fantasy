@@ -133,12 +133,14 @@ jobs:
           python pickups_espn.py > /dev/null
           python claims_espn.py > /dev/null
           python faab_carrboro.py > /dev/null     # FAAB leagues' budgets, for the site
+          python roster_status_export.py > /dev/null  # rosters after waivers + injury status (bye grid)
           # what the report reads but the night did not change (team tags, weeks):
           # from what the site published Tuesday, never over a fresh file
           for d in site/fixtures/processed/*/; do
             mkdir -p "data/processed/$(basename "$d")"
             cp -n "$d"*.json "data/processed/$(basename "$d")/"
           done
+          python schedule_export.py > /dev/null   # the weeks left, for the playoff picture (reads luck from above)
 
       - name: Build the reports
         if: steps.gate.outputs.go == 'true'
