@@ -44,6 +44,8 @@ renamed as (
         passing_epa,
         sacks_suffered,
         sack_yards_lost,
+        sack_fumbles_lost,
+        passing_2pt_conversions,
 
         -- Rushing --------------------------------------------------------------
         carries                                 as rushing_attempts,
@@ -51,6 +53,7 @@ renamed as (
         rushing_tds,
         rushing_first_downs,
         rushing_fumbles_lost,
+        rushing_2pt_conversions,
         rushing_epa,
 
         -- Receiving ------------------------------------------------------------
@@ -60,6 +63,7 @@ renamed as (
         receiving_tds,
         receiving_first_downs,
         receiving_fumbles_lost,
+        receiving_2pt_conversions,
         receiving_air_yards,
         receiving_epa,
         target_share,

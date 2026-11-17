@@ -1,5 +1,7 @@
 -- One row per player per play per fantasy league: the fantasy points that play was
--- worth to that player under the league's scoring (seed league_scoring), with the
+-- worth to that player under the league's scoring (seed league_scoring: each
+-- platform's exact offensive rules, interceptions, lost fumbles, 2-point tries and
+-- ADN's 40+ yard bonuses included), with the
 -- flags the recap reads. Grain: (league, game_id, play_id, player_id).
 --
 -- Only rows worth something (or with a touchdown) are kept: a 0-point tackle in a
@@ -38,6 +40,15 @@ scoring as (
         reception as w_reception,
         rec_td as w_rec_td,
         return_td as w_return_td,
+        pass_int as w_pass_int,
+        pick_six as w_pick_six,
+        fumble_lost as w_fumble_lost,
+        two_pt_pass as w_two_pt_pass,
+        two_pt_rec as w_two_pt_rec,
+        two_pt_rush as w_two_pt_rush,
+        pass_40 as w_pass_40,
+        rec_40 as w_rec_40,
+        rush_40 as w_rush_40,
         idp_tackle_solo as w_idp_tackle_solo,
         idp_tackle_assist as w_idp_tackle_assist,
         idp_tackle_for_loss as w_idp_tackle_for_loss,
@@ -73,7 +84,16 @@ scored as (
             + coalesce(rec_yd, 0) * scoring.w_rec_yd
             + coalesce(reception, 0) * scoring.w_reception
             + coalesce(rec_td, 0) * scoring.w_rec_td
-            + coalesce(return_td, 0) * scoring.w_return_td               as offense_points,
+            + coalesce(return_td, 0) * scoring.w_return_td
+            + coalesce(pass_int, 0) * scoring.w_pass_int
+            + coalesce(pick_six, 0) * scoring.w_pick_six
+            + coalesce(fumble_lost, 0) * scoring.w_fumble_lost
+            + coalesce(two_pt_pass, 0) * scoring.w_two_pt_pass
+            + coalesce(two_pt_rec, 0) * scoring.w_two_pt_rec
+            + coalesce(two_pt_rush, 0) * scoring.w_two_pt_rush
+            + coalesce(pass_40, 0) * scoring.w_pass_40
+            + coalesce(rec_40, 0) * scoring.w_rec_40
+            + coalesce(rush_40, 0) * scoring.w_rush_40                   as offense_points,
         coalesce(idp_tackle_solo, 0) * scoring.w_idp_tackle_solo
             + coalesce(idp_tackle_assist, 0) * scoring.w_idp_tackle_assist
             + coalesce(idp_tackle_for_loss, 0) * scoring.w_idp_tackle_for_loss
@@ -149,6 +169,7 @@ select
     wpa,
     -- stat components, for summaries
     target, carry, pass_yd, pass_td, rush_yd, rush_td, rec_yd, reception, rec_td, return_td,
+    pass_int, pick_six, fumble_lost, two_pt_pass, two_pt_rec, two_pt_rush, pass_40, rec_40, rush_40,
     idp_tackle_solo, idp_tackle_assist, idp_tackle_for_loss, idp_sack, idp_interception,
     idp_fumble_forced, idp_fumble_recovery, idp_pass_defended, idp_blocked_kick, idp_safety,
     idp_touchdown, fg_made, fg_yd, fg_40_49, fg_50_59, fg_60_plus, fg_miss, xp_made, xp_miss

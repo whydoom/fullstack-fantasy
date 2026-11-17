@@ -230,9 +230,12 @@ share per game is the substitute.
 Hand-maintained lookup tables, loaded by `dbt seed`:
 
 - `league_scoring.csv` — one row per fantasy league: points per yard, TD,
-  reception, IDP stat, and kicking (`fg_made`, `fg_yd` per FG yard, distance bonuses
-  `fg_40_49` / `fg_50_59` / `fg_60_plus`, `fg_miss`, `xp_made`, `xp_miss`). Offence
-  approximate until each league's exact rules are entered; kicking reproduces the
+  reception, interception, lost fumble, pick six, 2-point conversion (pass / rush /
+  catch), ADN's +1 for a 40+ yard completion, reception or run, IDP stats and kicking
+  (`fg_made`, `fg_yd` per FG yard, distance bonuses `fg_40_49` / `fg_50_59` /
+  `fg_60_plus`, `fg_miss`, `xp_made`, `xp_miss`). The offensive rules are exact,
+  copied from each platform's own scoring settings (Yahoo's stat_modifiers, ESPN's
+  scoringItems) on 2026-11-09 -- re-check them each season. Kicking reproduces the
   official kicker points (College Forever 62/62 kicker-weeks exact, ADN 50/60 and
   59/60 within a point). Official points disagree with the stated rules in two
   places, kept as the data shows: a missed XP scores 0, and a 60+ yard FG gets the
