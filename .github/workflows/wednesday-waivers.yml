@@ -140,6 +140,7 @@ jobs:
             mkdir -p "data/processed/$(basename "$d")"
             cp -n "$d"*.json "data/processed/$(basename "$d")/"
           done
+          python schedule_export.py > /dev/null   # the weeks left, for the playoff picture (reads luck from above)
 
       - name: Build the reports
         if: steps.gate.outputs.go == 'true'
