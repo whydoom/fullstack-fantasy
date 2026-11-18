@@ -31,6 +31,7 @@ import html
 import json
 import os
 import re
+import time
 from pathlib import Path
 
 import requests
@@ -77,6 +78,23 @@ def week_of(pickups: dict, team: str, player: str):
     return max(weeks) if weeks else None
 
 
+def fetch(url: str, tries: int = 4) -> requests.Response:
+    """The page, retried: from GitHub's runners Yahoo's web pages sometimes take
+    longer than 30 seconds to answer (a timeout cost ADN its losing bids on the
+    week 10 refresh). Waits 15, 30, 45 seconds between tries."""
+    last = None
+    for i in range(tries):
+        try:
+            r = requests.get(url, timeout=90, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            r.raise_for_status()
+            return r
+        except requests.RequestException as e:          # a timeout, a reset, a 5xx
+            last = e
+            if i + 1 < tries:
+                time.sleep(15 * (i + 1))
+    raise last
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--league", choices=keys("yahoo"))
@@ -84,9 +102,7 @@ def main() -> None:
     for key in ([a.league] if a.league else keys("yahoo")):
         league_key = latest_league_key(LEAGUES[key]["yahoo_league_name"])
         lid = league_key.split(".l.")[-1]
-        r = requests.get(PAGE.format(lid=lid), timeout=30,
-                         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-        r.raise_for_status()
+        r = fetch(PAGE.format(lid=lid))
         found = offers(r.text)
         if not found and "Winning Offer" not in r.text:
             # a private league shows a sign-in page instead: say so, never guess
